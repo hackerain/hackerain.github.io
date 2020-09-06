@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+          <head>
+        <meta charset="utf-8">
+            
+            <title>
+                TripleO-Quickstart使用 | 开心鬼
+            </title>
+            <meta content="width=device-width, initial-scale=1" name="viewport">
+            <meta name="theme-color" content="#4184f3">
+            
+            
+            <link href="/favicon.ico" rel="icon"/>
+            
+
+            
+<link rel="stylesheet" href="/css/highlight.light.css">
+
+            
+<link rel="stylesheet" href="/css/prism-customize.css">
+
+            
+<link rel="stylesheet" href="/css/nav-icon.css">
+
+            
+<link rel="stylesheet" href="/css/waves.min.css">
+
+            
+<link rel="stylesheet" href="/css/jquery.tocify.css">
+
+            
+<link rel="stylesheet" href="/css/main.css">
+
+            
+<link rel="stylesheet" href="/css/nav-indicator.css">
+
+            
+  
+  <!-- 百度统计 -->
+  <script>
+  var _hmt = _hmt || [];
+  (function() {
+    var hm = document.createElement("script");
+    hm.src = "//hm.baidu.com/hm.js?52c2063ad58df7e49e95e3ed44358e2c";
+    var s = document.getElementsByTagName("script")[0];
+    s.parentNode.insertBefore(hm, s);
+  })();
+  </script>
+  
+
+  
+            </meta>
+        </meta>
+    <meta name="generator" content="Hexo 5.1.1"></head>
+
+    <body>
+        <header>
+            <!-- cover image or sth. -->
+        </header>
+        <div id="main" class="m-scene">
+            
+<div class="nav-wrapper">
+
+    <div class="container">
+        <nav>
+            <div class="logo wave">
+                <a href="/" id="logo">
+                    开心鬼
+                </a>
+            </div>
+            <div class="nav-toggle-icon" >
+                <div class="material-hamburger">
+                    <span>
+                    </span>
+                    <span>
+                    </span>
+                    <span>
+                    </span>
+                </div>
+            </div>
+            <div class="menu-wrapper">
+                <div class="nav-indicator">
+                </div>
+                <ul class="menus">
+                    
+                     
+                        <li>
+                            <a class="wave " href="/">
+                                Home
+                            </a>
+                        </li>
+                     
+                        <li>
+                            <a class="wave " href="/archives">
+                                Archive
+                            </a>
+                        </li>
+                     
+                        <li>
+                            <a class="wave " href="/about">
+                                About
+                            </a>
+                        </li>
+                     
+                        <li>
+                            <a class="wave no-smoothstate" href="/atom.xml">
+                                RSS
+                            </a>
+                        </li>
+                     
+                    
+                   
+                </ul>
+            </div>
+        </nav>
+    </div>
+</div>
+            <div class="container content">
+                <div class="scene_element scene_element--fadein">
+                    <div class="row">
+    <div class="main">
+        <article>
+          
+          <header class="post-header">
+          
+          </header>
+          <h1 class="post-title">TripleO-Quickstart使用</h1>
+
+          <section class="post-info">
+            <span class="post-date">2017/02/25</span>
+            
+            
+          </section>
+
+          <section class="post-content">
+            <p>有好几年没有写博客了，这次趁着周末有时间，花了一天的时间写了一篇。在公司做了三年的开发，之后转到运维做了将近一年的运维，然后最近又从运维转到了DevOps，终于脱离了苦逼的运维岁月，想想那些年背的锅，辛酸苦楚只能自己体会，这些年开发与运维的经历，真的是我人生宝贵的财富，也为我现在转向DevOps奠定了坚实的基础。转到DevOps之后，负责的第一个重要的事情，就是OpenStack的部署工具，说的大一点，就是要解决OpenStack的交付问题，之前公司没有经验，交付存在各种问题，尤其影响到后面的继续维护，而部署工具是交付的重要一环，因此公司经过多次争论，决定使用社区的TripleO，放弃之前自己开发的部署工具，因此我承担起了对TripleO的开发维护工作，今天介绍的就是TripleO中的一个工具：tripleo-quickstart。</p>
+<h3 id="介绍"><a href="#介绍" class="headerlink" title="介绍"></a>介绍</h3><p><a target="_blank" rel="noopener" href="https://github.com/openstack/tripleo-quickstart">TripleO-Quckstart</a>是一个用来快速搭建TripleO测试环境的Ansible程序。在部署生产环境时，会用到<a target="_blank" rel="noopener" href="https://github.com/openstack/instack-undercloud">instack-undercloud</a>这个项目来部署undercloud，在该项目中有一个叫做<a target="_blank" rel="noopener" href="https://github.com/openstack/instack-undercloud/blob/master/scripts/instack-virt-setup">instack-virt-setup</a>的脚本，用来搭建测试tripleo用的虚拟环境，该脚本在Ocata版本将会被废弃，tripleo-quickstart就是用来取代它的，tripleo-quickstart通过一系列playbook，不仅可以用来搭建虚拟环境，还能在其上部署undercloud和overcloud，而且支持多种部署模式，部署完成之后，还能跑多种测试，检验部署结果，quickstart已经形成了一个完整的体系，而且使用方便，现在已经被社区用来跑TripleO的CI程序。</p>
+<p>和tripleo-quickstart相关的还有一个叫做<a target="_blank" rel="noopener" href="https://github.com/openstack/tripleo-quickstart-extras">tripleo-quickstart-extras</a>的项目，它是tripleo-quickstart功能的扩展，其实tripleo-quickstart本身只包含搭建虚拟测试环境的功能，包括环境检查，网络/存储/虚拟机的建立等等，而具体的搭建undercloud，overcloud的功能则是在tripleo-quickstart-extras中实现的，也包括测试验证，这些功能都被抽象成了ansible中的role。其实tripleo-quickstart-extras对tripleo-quickstart是没有依赖关系的，只要有环境，tripleo-quickstart-extras就用来部署undercloud/overcloud，不论是否是虚拟环境，因此在部署生产环境时也可以使用tripleo-quickstart-extras。其实本身tripleo的部署步骤就不复杂，tripleo-quickstart-extras只是将其中一些需要手动执行的命令编排了一下，让部署变得更加简单高效了。</p>
+<p>TripleO-Quickstart默认定义很多的部署模式，主要有以下几种：</p>
+<ul>
+<li>minimal，只部署一台controller和一台compute节点</li>
+<li>ha，部署三台controller和一台compute节点，三台controller的HA使用pacemaker管理</li>
+<li>ha_big，部署三台controller和三台compute，三台controller的HA使用pacemaker管理</li>
+<li>ceph，支持部署Ceph的Storage节点</li>
+</ul>
+<p>其实这些都是通过简单的配置文件来设置的，tripleo-quickstart底层已经进行了很好的抽象，上层只需要简单的定义就可以支持多种部署模式了。</p>
+<p>TripeO-Quickstart-Extras中还包含了很多验证部署结果的playbook，对部署完的集群功能是否正常进行有效验证，目前实现的主要有下面几种：</p>
+<ul>
+<li>validate-simple，简单验证，通过执行一系列OpenStack命令，比如创建网络，建虚拟机，创建stack，来验证基本的功能是否OK</li>
+<li>validate-tempest，功能验证，通过对overcloud来跑tempest测试来进行API层面的全面验证</li>
+<li>validate-ha，验证HA功能，通过关停一些节点和服务来验证HA的功能</li>
+<li>validate-undercloud，通过重装undercloud或者是跑一些常用OpenStack命令来验证undercloud功能</li>
+</ul>
+<p>TripleO-Quickstart使用方便，环境要求简单，可以用来搭建开发测试环境，并且适合新手快速上手TripleO和OpenStack。</p>
+<h3 id="解析"><a href="#解析" class="headerlink" title="解析"></a>解析</h3><p>TripeleO-Quickstart是使用Ansible Playbook进行编排的，抽象出了一系列role，role中包含了各种具体的task，然后通过playbook对指定host进行编排，Ansible程序写的非常好，是一个很好的典范，这里对整个流程做下解析，方便加深对其的掌握，理解其原理。下图为执行quickstart过程中一些主要的步骤：</p>
+<p><img src="/assets/tripleo-quickstart-analysis.png"></p>
+<p>整个过程大体可以分为4个阶段，上图中分别用4种颜色标识：</p>
+<ul>
+<li>第一个阶段，即浅红色部分，主要工作是清理上一次跑quickstart留下的环境，其中的non_root_user是在裸机上创建的一个用户，默认为stack，具有sudo权限，之后在裸机上执行的所有操作都是以这个用户的身份完成的。</li>
+<li>第二个阶段，即浅黄色部分，是环境的准备阶段，因为是要在一台裸机上装虚拟机测试TripleO，所以要安装kvm，libvirt等包，而且要创建虚拟机使用的volume pool和libvirt network，下载镜像，然后定义undercloud和overcloud虚拟机，并且启动undercloud虚拟机等待下一个阶段使用。需要注意的是，这里仅仅下载了undercloud的镜像，因为undercloud镜像中已经包含了overcloud镜像，所以不需要额外下载。</li>
+<li>第三个阶段，即浅绿色部分，是部署阶段，首先部署undercloud，然后部署overcloud，并且生成相应的rc文件，方便后面使用。因为本身tripleo本身就用了OpenStack中的很多组件，尤其是heat，已经进行了非常高度的抽象，因此部署步骤就很简单，quickstart将部署的命令都封装在了相应的脚本里，使用时，从ansible的模板生成，填上相应参数，传到undercloud的机器里执行。</li>
+<li>第四个阶段，即浅蓝色部分，是验证阶段，验证OverCloud部署是否正常，验证HA是否正常，跑tempest进行功能验证等等。</li>
+</ul>
+<p>这四个阶段，前两个阶段的步骤基本上都是在物理机上执行的，属于环境准备阶段，搭建起了TripleO的基本环境，这部分功能是在tripleo-quickstart中实现的，后两个阶段基本上都是在undercloud上执行的，是实际的部署验证阶段，这部分功能是在tripleo-quickstart-extras中实现的。</p>
+<h3 id="部署"><a href="#部署" class="headerlink" title="部署"></a>部署</h3><p>TripleO-Quickstart的部署要求必须有一台物理服务器，在quickstart中称作VIRTHOST，因为要建多台虚拟机，所以配置至少是16G内存，32G更好，对网络没有特殊要求，能通公网就行。本次测试所使用的物理服务器为64G内存，CPU型号为Intel(R) Xeon(R) CPU E5-2620 v3 @ 2.40GHz，是在Softlayer上申请的一台物理机。<a target="_blank" rel="noopener" href="http://www.softlayer.com/">Softlayer</a>在2013年被IBM收购，被整合到IBM的<a target="_blank" rel="noopener" href="https://console.ng.bluemix.net/">Bluemix</a>中，Softlayer除了提供多种云服务外，也是唯一一家提供裸机服务的公有云，使用体验非常不错。</p>
+<p>除了有一台物理服务器外，还需要有一个客户端机器，能够ssh到物理服务器，操作系统需要是RedHat系的，在quickstart中称为localhost，需要将quickstart的程序放到localhost中，然后ssh到物理服务器上执行相应的ansible程序。</p>
+<p>本次测试将会部署一个HA模式的TripleO环境，有3个控制节点和1个计算节点，控制节点同时充当网络节点，quickstart目前默认部署Newton版本OpenStack，没有部署Ceph，存储使用本地存储。执行过程如下：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">[root@localhost ~] export VIRTHOST&#x3D;&#39;my_test_machine.example.com&#39;</span><br><span class="line">[root@localhost ~] wget https:&#x2F;&#x2F;raw.githubusercontent.com&#x2F;openstack&#x2F;tripleo-quickstart&#x2F;master&#x2F;quickstart.sh</span><br><span class="line">[root@localhost ~] bash quickstart.sh --install-deps</span><br><span class="line">[root@localhost ~] bash .&#x2F;quickstart.sh --tags all --config ~&#x2F;.quickstart&#x2F;tripleo-quickstart&#x2F;config&#x2F;general_config&#x2F;ha.yml $VIRTHOST</span><br></pre></td></tr></table></figure>
+
+<p>在quickstart中，基本上为每一个task都通过tag做了分类，可以通过–tags来选择执行某些task，上面使用all即执行所有的task，也就是要搭建一个完整的环境。使用–config可以指定部署模式，这里选择的是ha模式，此外还有多种模式可以选择，该配置文件还定义了一些其他参数，比如虚拟机的配置，是否跑tempest等。因为在安装过程中要去装各种包，而且要下载undercloud的镜像，国外的网络环境较好，会遇到比较少的坑。</p>
+<p>等待一杯咖啡的时间，一个具备HA的OpenStack虚拟环境就部署好了，包含三个控制节点，一个计算节点。</p>
+<p>由于在OpenStack中最复杂最难懂的就是网络了，尤其是在虚拟环境中，网络拓扑要比物理环境还要复杂，而且是在一台物理服务器上安装一个具备完整功能的OpenStack环境，因此，下面重点介绍下用tripleo-quickstart部署出来的集群的网络拓扑，如下图：</p>
+<p><img src="/assets/tripleo-undercloud-topology.png"></p>
+<p>在物理服务器上，通过libvirt network建立了两个linux bridge，分别为brext和brovc，brext用来桥接undercloud，brovc用来桥接overcloud节点，undercloud虚拟机有两个网卡，分别桥接在brext和brovc上。brext提供了访问公网的能力，brovc将多个overcloud和undercloud节点连接在一起。</p>
+<p>Undercloud是一个单机版的OpenStack，安装了Nova, Neutron, Ironic, Heat等组件，Ironic通过使用pxe_ssh driver来管理overcloud节点，Neutron为overcloud节点提供网络环境，Heat则在TripleO中被用来编排，创建整个overcloud的stack。默认的TripleO会在undercloud中创建下面几个网络：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">[stack@undercloud ~]$ neutron net-list</span><br><span class="line">+--------------------------------------+--------------+------------------------------------------------------+</span><br><span class="line">| id                                   | name         | subnets                                              |</span><br><span class="line">+--------------------------------------+--------------+------------------------------------------------------+</span><br><span class="line">| 0a5f9e61-7f2a-4d1b-9b44-4f82a1412ef4 | internal_api | 0fe319dd-ec16-47c5-b039-707373b7875c 172.16.2.0&#x2F;24   |</span><br><span class="line">| 305526f7-d0bf-49b5-947a-d25778836cba | tenant       | a71b5b1c-5f52-4efd-af21-705192bf2a70 172.16.0.0&#x2F;24   |</span><br><span class="line">| 9e0930f3-8180-4fa3-a955-73aca0134795 | storage_mgmt | e596d585-7c12-471e-89de-eea48cabc0df 172.16.3.0&#x2F;24   |</span><br><span class="line">| be6f07e5-e212-4e9e-bc7b-0edd4eb11b13 | ctlplane     | ad8a6a4d-c5a3-4c44-a17d-1d1a9341f33b 192.168.24.0&#x2F;24 |</span><br><span class="line">| f303022b-907e-4ce6-a2c0-c1ce7fabe9ac | external     | 4a47bc1b-a7f2-45a4-bd40-2f3032198b34 10.0.0.0&#x2F;24     |</span><br><span class="line">| fcdff6b1-43d2-4787-b458-368b48b97a73 | storage      | 6de1e1b3-4972-49b1-ae19-20e163af010c 172.16.1.0&#x2F;24   |</span><br><span class="line">+--------------------------------------+--------------+------------------------------------------------------+</span><br></pre></td></tr></table></figure>
+
+<p>这几个网络都是Flat模式的网络，internal_api在overcloud中被用来作为内部API交互的网络，tenant是SDN网络，storage_mgmt是存储管理网络，ctlplane是管理网络，即ssh网络，external是外部网络，storage是存储网。</p>
+<p>在上面的网络中，只有ctlplane的子网开启了DHCP功能，为overcloud的管理网络分配IP，因此在undercloud中有一个DHCP的namespace，通过veth tap桥接在br-int ovs网桥上。</p>
+<p>external网络是用来开放API和面板的，跟internal_api对应，在overcloud中，API和面板分别绑定在了internal_api和external网络上，在undercloud的br-ctlplane ovs网桥上，创建了一个vlan10的port，并且在undercloud中加上了相应的路由信息，这样在undercloud中就可以直接通过这个网络访问overcloud中的API了：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">[stack@undercloud ~]$ ip r</span><br><span class="line">default via 192.168.23.1 dev eth0</span><br><span class="line">10.0.0.0&#x2F;24 dev vlan10  proto kernel  scope link  src 10.0.0.1</span><br></pre></td></tr></table></figure>
+
+<p>在overcloud中，通过在br-ex ovs网桥上绑定多个带tag的port，并且每个port分配了IP，来模拟多个网络，分别对应undercloud中创建的网络。在br-ex中的每个port都带着vlan tag，模拟交换机的access口，通过不同的vlan互相隔离。</p>
+<p>控制节点和计算节点之间的SDN网络，即tenant网络，在上面图中使用黄色标注，即vlan50，通过vxlan建立隧道，使用vlan50上的ip作为对端IP。</p>
+<p>其他就是标准的Neutron网络了。</p>
+<h3 id="附录"><a href="#附录" class="headerlink" title="附录"></a>附录</h3><ul>
+<li><p>undercloud br-ctlplane流表</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">[stack@undercloud ~]$ sudo ovs-ofctl dump-flows br-ctlplane</span><br><span class="line">NXST_FLOW reply (xid&#x3D;0x4):</span><br><span class="line">cookie&#x3D;0xa382b4ab161c4f5a, duration&#x3D;287114.883s, table&#x3D;0, n_packets&#x3D;640, n_bytes&#x3D;63449, idle_age&#x3D;65534, hard_age&#x3D;65534, priority&#x3D;4,in_port&#x3D;2,dl_vlan&#x3D;1 actions&#x3D;strip_vlan,NORMAL</span><br><span class="line">cookie&#x3D;0xa382b4ab161c4f5a, duration&#x3D;287154.063s, table&#x3D;0, n_packets&#x3D;3, n_bytes&#x3D;258, idle_age&#x3D;65534, hard_age&#x3D;65534, priority&#x3D;2,in_port&#x3D;2 actions&#x3D;drop</span><br><span class="line">cookie&#x3D;0xa382b4ab161c4f5a, duration&#x3D;287154.285s, table&#x3D;0, n_packets&#x3D;9441009, n_bytes&#x3D;29995798300, idle_age&#x3D;0, hard_age&#x3D;65534, priority&#x3D;0 actions&#x3D;NORMAL</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>undercloud br-int流表</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">[stack@undercloud ~]$ sudo ovs-ofctl dump-flows br-int</span><br><span class="line">NXST_FLOW reply (xid&#x3D;0x4):</span><br><span class="line">cookie&#x3D;0xbca7bd29346f9fa9, duration&#x3D;287162.954s, table&#x3D;0, n_packets&#x3D;581299, n_bytes&#x3D;31344498, idle_age&#x3D;0, hard_age&#x3D;65534, priority&#x3D;3,in_port&#x3D;1,vlan_tci&#x3D;0x0000&#x2F;0x1fff actions&#x3D;mod_vlan_vid:1,NORMAL</span><br><span class="line">cookie&#x3D;0xbca7bd29346f9fa9, duration&#x3D;287202.139s, table&#x3D;0, n_packets&#x3D;94718, n_bytes&#x3D;7492743, idle_age&#x3D;707, hard_age&#x3D;65534, priority&#x3D;2,in_port&#x3D;1 actions&#x3D;drop</span><br><span class="line">cookie&#x3D;0xbca7bd29346f9fa9, duration&#x3D;287202.890s, table&#x3D;0, n_packets&#x3D;643, n_bytes&#x3D;63707, idle_age&#x3D;65534, hard_age&#x3D;65534, priority&#x3D;0 actions&#x3D;NORMAL</span><br><span class="line">cookie&#x3D;0xbca7bd29346f9fa9, duration&#x3D;287202.892s, table&#x3D;23, n_packets&#x3D;0, n_bytes&#x3D;0, idle_age&#x3D;65534, hard_age&#x3D;65534, priority&#x3D;0 actions&#x3D;drop</span><br><span class="line">cookie&#x3D;0xbca7bd29346f9fa9, duration&#x3D;287202.889s, table&#x3D;24, n_packets&#x3D;0, n_bytes&#x3D;0, idle_age&#x3D;65534, hard_age&#x3D;65534, priority&#x3D;0 actions&#x3D;drop</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>controll_0 br-tun流表</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line">[root@overcloud-controller-1 ~]# ovs-ofctl dump-flows br-tun</span><br><span class="line">NXST_FLOW reply (xid&#x3D;0x4):</span><br><span class="line">cookie&#x3D;0x8513f3cebfb2fa84, duration&#x3D;276881.519s, table&#x3D;0, n_packets&#x3D;583649, n_bytes&#x3D;31994786, idle_age&#x3D;0, hard_age&#x3D;65534, priority&#x3D;1,in_port&#x3D;1 actions&#x3D;resubmit(,2)</span><br><span class="line">cookie&#x3D;0x8513f3cebfb2fa84, duration&#x3D;276869.341s, table&#x3D;0, n_packets&#x3D;9, n_bytes&#x3D;670, idle_age&#x3D;65534, hard_age&#x3D;65534, priority&#x3D;1,in_port&#x3D;2 actions&#x3D;resubmit(,4)</span><br><span class="line">cookie&#x3D;0x8513f3cebfb2fa84, duration&#x3D;276869.338s, table&#x3D;0, n_packets&#x3D;4, n_bytes&#x3D;280, idle_age&#x3D;65534, hard_age&#x3D;65534, priority&#x3D;1,in_port&#x3D;4 actions&#x3D;resubmit(,4)</span><br><span class="line">cookie&#x3D;0x8513f3cebfb2fa84, duration&#x3D;276869.335s, table&#x3D;0, n_packets&#x3D;40902, n_bytes&#x3D;3189452, idle_age&#x3D;3, hard_age&#x3D;65534, priority&#x3D;1,in_port&#x3D;3 actions&#x3D;resubmit(,4)</span><br><span class="line">cookie&#x3D;0x8513f3cebfb2fa84, duration&#x3D;276881.518s, table&#x3D;0, n_packets&#x3D;0, n_bytes&#x3D;0, idle_age&#x3D;65534, hard_age&#x3D;65534, priority&#x3D;0 actions&#x3D;drop</span><br><span class="line">cookie&#x3D;0x8513f3cebfb2fa84, duration&#x3D;276881.516s, table&#x3D;2, n_packets&#x3D;40074, n_bytes&#x3D;2719568, idle_age&#x3D;3, hard_age&#x3D;65534, priority&#x3D;0,dl_dst&#x3D;00:00:00:00:00:00&#x2F;01:00:00:00:00:00 actions&#x3D;resubmit(,20)</span><br><span class="line">cookie&#x3D;0x8513f3cebfb2fa84, duration&#x3D;276881.515s, table&#x3D;2, n_packets&#x3D;543575, n_bytes&#x3D;29275218, idle_age&#x3D;0, hard_age&#x3D;65534, priority&#x3D;0,dl_dst&#x3D;01:00:00:00:00:00&#x2F;01:00:00:00:00:00 actions&#x3D;resubmit(,22)</span><br><span class="line">cookie&#x3D;0x8513f3cebfb2fa84, duration&#x3D;276881.514s, table&#x3D;3, n_packets&#x3D;0, n_bytes&#x3D;0, idle_age&#x3D;65534, hard_age&#x3D;65534, priority&#x3D;0 actions&#x3D;drop</span><br><span class="line">cookie&#x3D;0x8513f3cebfb2fa84, duration&#x3D;239847.949s, table&#x3D;4, n_packets&#x3D;40889, n_bytes&#x3D;3188008, idle_age&#x3D;3, hard_age&#x3D;65534, priority&#x3D;1,tun_id&#x3D;0x5c actions&#x3D;mod_vlan_vid:4,resubmit(,10)</span><br><span class="line">cookie&#x3D;0x8513f3cebfb2fa84, duration&#x3D;276881.513s, table&#x3D;4, n_packets&#x3D;6, n_bytes&#x3D;460, idle_age&#x3D;65534, hard_age&#x3D;65534, priority&#x3D;0 actions&#x3D;drop</span><br><span class="line">cookie&#x3D;0x8513f3cebfb2fa84, duration&#x3D;276881.401s, table&#x3D;6, n_packets&#x3D;0, n_bytes&#x3D;0, idle_age&#x3D;65534, hard_age&#x3D;65534, priority&#x3D;0 actions&#x3D;drop</span><br><span class="line">cookie&#x3D;0x8513f3cebfb2fa84, duration&#x3D;276881.399s, table&#x3D;10, n_packets&#x3D;40909, n_bytes&#x3D;3189942, idle_age&#x3D;3, hard_age&#x3D;65534, priority&#x3D;1 actions&#x3D;learn(table&#x3D;20,hard_timeout&#x3D;300,priority&#x3D;1,cookie&#x3D;0x8513f3cebfb2fa84,NXM_OF_VLAN_TCI[0..11],NXM_OF_ETH_DST[]&#x3D;NXM_OF_ETH_SRC[],load:0-&gt;NXM_OF_VLAN_TCI[],load:NXM_NX_TUN_ID[]-&gt;NXM_NX_TUN_ID[],output:OXM_OF_IN_PORT[]),output:1</span><br><span class="line">cookie&#x3D;0x8513f3cebfb2fa84, duration&#x3D;35533.393s, table&#x3D;20, n_packets&#x3D;17409, n_bytes&#x3D;1251681, hard_timeout&#x3D;300, idle_age&#x3D;3, hard_age&#x3D;2, priority&#x3D;1,vlan_tci&#x3D;0x0004&#x2F;0x0fff,dl_dst&#x3D;fa:16:3e:6b:d6:95 actions&#x3D;load:0-&gt;NXM_OF_VLAN_TCI[],load:0x5c-&gt;NXM_NX_TUN_ID[],output:3</span><br><span class="line">cookie&#x3D;0x8513f3cebfb2fa84, duration&#x3D;276881.398s, table&#x3D;20, n_packets&#x3D;53, n_bytes&#x3D;3850, idle_age&#x3D;65534, hard_age&#x3D;65534, priority&#x3D;0 actions&#x3D;resubmit(,22)</span><br><span class="line">cookie&#x3D;0x8513f3cebfb2fa84, duration&#x3D;239847.950s, table&#x3D;22, n_packets&#x3D;30, n_bytes&#x3D;1316, idle_age&#x3D;65534, hard_age&#x3D;65534, priority&#x3D;1,dl_vlan&#x3D;4 actions&#x3D;strip_vlan,load:0x5c-&gt;NXM_NX_TUN_ID[],output:3,output:4,output:2</span><br><span class="line">cookie&#x3D;0x8513f3cebfb2fa84, duration&#x3D;276881.397s, table&#x3D;22, n_packets&#x3D;543596, n_bytes&#x3D;29277612, idle_age&#x3D;0, hard_age&#x3D;65534, priority&#x3D;0 actions&#x3D;drop</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>contorll_0 br-int流表</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">[root@overcloud-controller-1 ~]# ovs-ofctl dump-flows br-int</span><br><span class="line">NXST_FLOW reply (xid&#x3D;0x4):</span><br><span class="line">cookie&#x3D;0xbb0786bfe2f662c0, duration&#x3D;265938.161s, table&#x3D;0, n_packets&#x3D;577089, n_bytes&#x3D;31597998, idle_age&#x3D;0, hard_age&#x3D;65534, priority&#x3D;3,in_port&#x3D;1,vlan_tci&#x3D;0x0000&#x2F;0x1fff actions&#x3D;mod_vlan_vid:3,NORMAL</span><br><span class="line">cookie&#x3D;0xbb0786bfe2f662c0, duration&#x3D;276928.381s, table&#x3D;0, n_packets&#x3D;106165, n_bytes&#x3D;7751821, idle_age&#x3D;885, hard_age&#x3D;65534, priority&#x3D;2,in_port&#x3D;1 actions&#x3D;drop</span><br><span class="line">cookie&#x3D;0xbb0786bfe2f662c0, duration&#x3D;276928.545s, table&#x3D;0, n_packets&#x3D;120741, n_bytes&#x3D;9002846, idle_age&#x3D;4, hard_age&#x3D;65534, priority&#x3D;0 actions&#x3D;NORMAL</span><br><span class="line">cookie&#x3D;0xbb0786bfe2f662c0, duration&#x3D;276928.547s, table&#x3D;23, n_packets&#x3D;0, n_bytes&#x3D;0, idle_age&#x3D;65534, hard_age&#x3D;65534, priority&#x3D;0 actions&#x3D;drop</span><br><span class="line">cookie&#x3D;0xbb0786bfe2f662c0, duration&#x3D;276928.544s, table&#x3D;24, n_packets&#x3D;0, n_bytes&#x3D;0, idle_age&#x3D;65534, hard_age&#x3D;65534, priority&#x3D;0 actions&#x3D;drop</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>controll_0 br-ex流表</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">[root@overcloud-controller-1 ~]# ovs-ofctl dump-flows br-ex</span><br><span class="line">NXST_FLOW reply (xid&#x3D;0x4):</span><br><span class="line">cookie&#x3D;0xafa8d606ada81d76, duration&#x3D;265988.920s, table&#x3D;0, n_packets&#x3D;39286, n_bytes&#x3D;3071764, idle_age&#x3D;5, hard_age&#x3D;65534, priority&#x3D;4,in_port&#x3D;7,dl_vlan&#x3D;3 actions&#x3D;strip_vlan,NORMAL</span><br><span class="line">cookie&#x3D;0xafa8d606ada81d76, duration&#x3D;276979.138s, table&#x3D;0, n_packets&#x3D;1265, n_bytes&#x3D;66286, idle_age&#x3D;21267, hard_age&#x3D;65534, priority&#x3D;2,in_port&#x3D;7 actions&#x3D;drop</span><br><span class="line">cookie&#x3D;0xafa8d606ada81d76, duration&#x3D;276979.143s, table&#x3D;0, n_packets&#x3D;489065150, n_bytes&#x3D;98446193899, idle_age&#x3D;0, hard_age&#x3D;65534, priority&#x3D;0 actions&#x3D;NORMAL</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>compute_0 br-tun流表</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line">[root@overcloud-novacompute-0 ~]# ovs-ofctl dump-flows br-tun</span><br><span class="line">NXST_FLOW reply (xid&#x3D;0x4):</span><br><span class="line">cookie&#x3D;0x85eb64bc3e0f6ac1, duration&#x3D;277743.277s, table&#x3D;0, n_packets&#x3D;46825, n_bytes&#x3D;3485282, idle_age&#x3D;1, hard_age&#x3D;65534, priority&#x3D;1,in_port&#x3D;1 actions&#x3D;resubmit(,2)</span><br><span class="line">cookie&#x3D;0x85eb64bc3e0f6ac1, duration&#x3D;277059.640s, table&#x3D;0, n_packets&#x3D;142, n_bytes&#x3D;23696, idle_age&#x3D;21319, hard_age&#x3D;65534, priority&#x3D;1,in_port&#x3D;3 actions&#x3D;resubmit(,4)</span><br><span class="line">cookie&#x3D;0x85eb64bc3e0f6ac1, duration&#x3D;277023.273s, table&#x3D;0, n_packets&#x3D;40094, n_bytes&#x3D;2719688, idle_age&#x3D;1, hard_age&#x3D;65534, priority&#x3D;1,in_port&#x3D;4 actions&#x3D;resubmit(,4)</span><br><span class="line">cookie&#x3D;0x85eb64bc3e0f6ac1, duration&#x3D;233719.067s, table&#x3D;0, n_packets&#x3D;62, n_bytes&#x3D;5192, idle_age&#x3D;65534, hard_age&#x3D;65534, priority&#x3D;1,in_port&#x3D;2 actions&#x3D;resubmit(,4)</span><br><span class="line">cookie&#x3D;0x85eb64bc3e0f6ac1, duration&#x3D;277743.276s, table&#x3D;0, n_packets&#x3D;0, n_bytes&#x3D;0, idle_age&#x3D;65534, hard_age&#x3D;65534, priority&#x3D;0 actions&#x3D;drop</span><br><span class="line">cookie&#x3D;0x85eb64bc3e0f6ac1, duration&#x3D;277743.274s, table&#x3D;2, n_packets&#x3D;40113, n_bytes&#x3D;3161002, idle_age&#x3D;1, hard_age&#x3D;65534, priority&#x3D;0,dl_dst&#x3D;00:00:00:00:00:00&#x2F;01:00:00:00:00:00 actions&#x3D;resubmit(,20)</span><br><span class="line">cookie&#x3D;0x85eb64bc3e0f6ac1, duration&#x3D;277743.273s, table&#x3D;2, n_packets&#x3D;6712, n_bytes&#x3D;324280, idle_age&#x3D;65534, hard_age&#x3D;65534, priority&#x3D;0,dl_dst&#x3D;01:00:00:00:00:00&#x2F;01:00:00:00:00:00 actions&#x3D;resubmit(,22)</span><br><span class="line">cookie&#x3D;0x85eb64bc3e0f6ac1, duration&#x3D;277743.272s, table&#x3D;3, n_packets&#x3D;0, n_bytes&#x3D;0, idle_age&#x3D;65534, hard_age&#x3D;65534, priority&#x3D;0 actions&#x3D;drop</span><br><span class="line">cookie&#x3D;0x85eb64bc3e0f6ac1, duration&#x3D;197945.765s, table&#x3D;4, n_packets&#x3D;39836, n_bytes&#x3D;2683592, idle_age&#x3D;1, hard_age&#x3D;65534, priority&#x3D;1,tun_id&#x3D;0x5c actions&#x3D;mod_vlan_vid:6,resubmit(,10)</span><br><span class="line">cookie&#x3D;0x85eb64bc3e0f6ac1, duration&#x3D;277743.271s, table&#x3D;4, n_packets&#x3D;15, n_bytes&#x3D;1090, idle_age&#x3D;65534, hard_age&#x3D;65534, priority&#x3D;0 actions&#x3D;drop</span><br><span class="line">cookie&#x3D;0x85eb64bc3e0f6ac1, duration&#x3D;277743.270s, table&#x3D;6, n_packets&#x3D;0, n_bytes&#x3D;0, idle_age&#x3D;65534, hard_age&#x3D;65534, priority&#x3D;0 actions&#x3D;drop</span><br><span class="line">cookie&#x3D;0x85eb64bc3e0f6ac1, duration&#x3D;277743.269s, table&#x3D;10, n_packets&#x3D;40283, n_bytes&#x3D;2747486, idle_age&#x3D;1, hard_age&#x3D;65534, priority&#x3D;1 actions&#x3D;learn(table&#x3D;20,hard_timeout&#x3D;300,priority&#x3D;1,cookie&#x3D;0x85eb64bc3e0f6ac1,NXM_OF_VLAN_TCI[0..11],NXM_OF_ETH_DST[]&#x3D;NXM_OF_ETH_SRC[],load:0-&gt;NXM_OF_VLAN_TCI[],load:NXM_NX_TUN_ID[]-&gt;NXM_NX_TUN_ID[],output:OXM_OF_IN_PORT[]),output:1</span><br><span class="line">cookie&#x3D;0x85eb64bc3e0f6ac1, duration&#x3D;35687.268s, table&#x3D;20, n_packets&#x3D;17405, n_bytes&#x3D;1695793, hard_timeout&#x3D;300, idle_age&#x3D;1, hard_age&#x3D;1, priority&#x3D;1,vlan_tci&#x3D;0x0006&#x2F;0x0fff,dl_dst&#x3D;fa:16:3e:ea:0e:8f actions&#x3D;load:0-&gt;NXM_OF_VLAN_TCI[],load:0x5c-&gt;NXM_NX_TUN_ID[],output:4</span><br><span class="line">cookie&#x3D;0x85eb64bc3e0f6ac1, duration&#x3D;277743.268s, table&#x3D;20, n_packets&#x3D;112, n_bytes&#x3D;11204, idle_age&#x3D;21324, hard_age&#x3D;65534, priority&#x3D;0 actions&#x3D;resubmit(,22)</span><br><span class="line">cookie&#x3D;0x85eb64bc3e0f6ac1, duration&#x3D;197945.766s, table&#x3D;22, n_packets&#x3D;122, n_bytes&#x3D;12480, idle_age&#x3D;21324, hard_age&#x3D;65534, priority&#x3D;1,dl_vlan&#x3D;6 actions&#x3D;strip_vlan,load:0x5c-&gt;NXM_NX_TUN_ID[],output:4,output:3,output:2</span><br><span class="line">cookie&#x3D;0x85eb64bc3e0f6ac1, duration&#x3D;277743.267s, table&#x3D;22, n_packets&#x3D;5678, n_bytes&#x3D;276452, idle_age&#x3D;65534, hard_age&#x3D;65534, priority&#x3D;0 actions&#x3D;drop</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>compute_0 br-int流表</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">[root@overcloud-novacompute-0 ~]# ovs-ofctl dump-flows br-int</span><br><span class="line">NXST_FLOW reply (xid&#x3D;0x4):</span><br><span class="line">cookie&#x3D;0xa765c80babd2ebcb, duration&#x3D;197996.437s, table&#x3D;0, n_packets&#x3D;0, n_bytes&#x3D;0, idle_age&#x3D;65534, hard_age&#x3D;65534, priority&#x3D;10,icmp6,in_port&#x3D;8,icmp_type&#x3D;136 actions&#x3D;resubmit(,24)</span><br><span class="line">cookie&#x3D;0xa765c80babd2ebcb, duration&#x3D;197996.435s, table&#x3D;0, n_packets&#x3D;7167, n_bytes&#x3D;301014, idle_age&#x3D;8, hard_age&#x3D;65534, priority&#x3D;10,arp,in_port&#x3D;8 actions&#x3D;resubmit(,24)</span><br><span class="line">cookie&#x3D;0xa765c80babd2ebcb, duration&#x3D;277794.862s, table&#x3D;0, n_packets&#x3D;648145, n_bytes&#x3D;37251497, idle_age&#x3D;1, hard_age&#x3D;65534, priority&#x3D;2,in_port&#x3D;1 actions&#x3D;drop</span><br><span class="line">cookie&#x3D;0xa765c80babd2ebcb, duration&#x3D;197996.441s, table&#x3D;0, n_packets&#x3D;32551, n_bytes&#x3D;2813463, idle_age&#x3D;3, hard_age&#x3D;65534, priority&#x3D;9,in_port&#x3D;8 actions&#x3D;resubmit(,25)</span><br><span class="line">cookie&#x3D;0xa765c80babd2ebcb, duration&#x3D;277794.916s, table&#x3D;0, n_packets&#x3D;40319, n_bytes&#x3D;2750270, idle_age&#x3D;3, hard_age&#x3D;65534, priority&#x3D;0 actions&#x3D;NORMAL</span><br><span class="line">cookie&#x3D;0xa765c80babd2ebcb, duration&#x3D;277794.918s, table&#x3D;23, n_packets&#x3D;0, n_bytes&#x3D;0, idle_age&#x3D;65534, hard_age&#x3D;65534, priority&#x3D;0 actions&#x3D;drop</span><br><span class="line">cookie&#x3D;0xa765c80babd2ebcb, duration&#x3D;197996.439s, table&#x3D;24, n_packets&#x3D;0, n_bytes&#x3D;0, idle_age&#x3D;65534, hard_age&#x3D;65534, priority&#x3D;2,icmp6,in_port&#x3D;8,icmp_type&#x3D;136,nd_target&#x3D;fe80::f816:3eff:fe6b:d695 actions&#x3D;NORMAL</span><br><span class="line">cookie&#x3D;0xa765c80babd2ebcb, duration&#x3D;197996.436s, table&#x3D;24, n_packets&#x3D;7155, n_bytes&#x3D;300510, idle_age&#x3D;8, hard_age&#x3D;65534, priority&#x3D;2,arp,in_port&#x3D;8,arp_spa&#x3D;192.168.100.104 actions&#x3D;resubmit(,25)</span><br><span class="line">cookie&#x3D;0xa765c80babd2ebcb, duration&#x3D;277794.915s, table&#x3D;24, n_packets&#x3D;18, n_bytes&#x3D;756, idle_age&#x3D;21373, hard_age&#x3D;65534, priority&#x3D;0 actions&#x3D;drop</span><br><span class="line">cookie&#x3D;0xa765c80babd2ebcb, duration&#x3D;197996.443s, table&#x3D;25, n_packets&#x3D;39706, n_bytes&#x3D;3113973, idle_age&#x3D;3, hard_age&#x3D;65534, priority&#x3D;2,in_port&#x3D;8,dl_src&#x3D;fa:16:3e:6b:d6:95 actions&#x3D;NORMAL</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>compute_0 br-ex流表</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">[root@overcloud-novacompute-0 ~]# ovs-ofctl dump-flows br-ex</span><br><span class="line">NXST_FLOW reply (xid&#x3D;0x4):</span><br><span class="line">cookie&#x3D;0xaff6936771f75f35, duration&#x3D;277836.775s, table&#x3D;0, n_packets&#x3D;1199, n_bytes&#x3D;62346, idle_age&#x3D;21417, hard_age&#x3D;65534, priority&#x3D;2,in_port&#x3D;5 actions&#x3D;drop</span><br><span class="line">cookie&#x3D;0xaff6936771f75f35, duration&#x3D;277836.795s, table&#x3D;0, n_packets&#x3D;6286307, n_bytes&#x3D;3591027442, idle_age&#x3D;0, hard_age&#x3D;65534, priority&#x3D;0 actions&#x3D;NORMAL</span><br></pre></td></tr></table></figure>
+
+
+
+</li>
+</ul>
+
+          </section>
+        </article>
+        
+
+       
+        <div class="pager">
+          
+            <a class="post-prev pager-item" href="/2017/03/06/openstack/tripleo/os_refresh_config.html" >
+              <strong class="article-nav-caption">Newer</strong>
+              <p class="post-nav-title">TripleO os-refresh-config介绍</p>
+            </a>
+          
+          
+        </div>
+        
+
+         <!-- comments -->
+        <div class="comment-section">
+  
+    
+    
+<link rel="stylesheet" href="/css/gitalk.css">
+
+    
+<script src="/lib/gitalk.min.js"></script>
+
+    <div id="gitalk-container"></div>
+    <script>
+      const gitalk = new Gitalk({
+        clientID: '54c13c09b0079cbb2386',
+        clientSecret: 'a4b61935040bb6a0ef0764889b6283a21fba00dd',
+        repo: 'hackerain.github.io',
+        owner: 'hackerain',
+        admin: ['hackerain'],
+        id: location.pathname.substr(11,30)+":"+location.pathname.split("").reduce(function(a,b){a=((a<<5)-a)+b.charCodeAt(0);return a&a},0),
+        distractionFreeMode: true
+      })
+      gitalk.render('gitalk-container')
+    </script>
+  
+
+
+</div>
+
+
+    </div>
+    
+</div>
+
+                </div>
+            </div>
+        </div>
+        <footer class="footer">
+    <p>由<a href="http://hexo.io/" target="_blank">Hexo</a>强力驱动，搭载<a target="_blank" rel="noopener" href="https://github.com/wayou/hexo-theme-gstyle">gstyle</a>主题</p>
+    <p>
+        &copy; 2020 hackerain
+    </p>
+</footer>
+
+<script src="/lib/jquery.js"></script>
+
+
+<script src="/lib/waves.js"></script>
+
+
+<script src="/lib/jquery-ui.js"></script>
+
+
+<script src="/lib/jquery.tocify.js"></script>
+
+
+<script src="/js/main.js"></script>
+
+
+    </body>
+</html>

@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+          <head>
+        <meta charset="utf-8">
+            
+            <title>
+                TCP长连接中断导致的业务问题 | 开心鬼
+            </title>
+            <meta content="width=device-width, initial-scale=1" name="viewport">
+            <meta name="theme-color" content="#4184f3">
+            
+            
+            <link href="/favicon.ico" rel="icon"/>
+            
+
+            
+<link rel="stylesheet" href="/css/highlight.light.css">
+
+            
+<link rel="stylesheet" href="/css/prism-customize.css">
+
+            
+<link rel="stylesheet" href="/css/nav-icon.css">
+
+            
+<link rel="stylesheet" href="/css/waves.min.css">
+
+            
+<link rel="stylesheet" href="/css/jquery.tocify.css">
+
+            
+<link rel="stylesheet" href="/css/main.css">
+
+            
+<link rel="stylesheet" href="/css/nav-indicator.css">
+
+            
+  
+  <!-- 百度统计 -->
+  <script>
+  var _hmt = _hmt || [];
+  (function() {
+    var hm = document.createElement("script");
+    hm.src = "//hm.baidu.com/hm.js?52c2063ad58df7e49e95e3ed44358e2c";
+    var s = document.getElementsByTagName("script")[0];
+    s.parentNode.insertBefore(hm, s);
+  })();
+  </script>
+  
+
+  
+            </meta>
+        </meta>
+    <meta name="generator" content="Hexo 5.1.1"></head>
+
+    <body>
+        <header>
+            <!-- cover image or sth. -->
+        </header>
+        <div id="main" class="m-scene">
+            
+<div class="nav-wrapper">
+
+    <div class="container">
+        <nav>
+            <div class="logo wave">
+                <a href="/" id="logo">
+                    开心鬼
+                </a>
+            </div>
+            <div class="nav-toggle-icon" >
+                <div class="material-hamburger">
+                    <span>
+                    </span>
+                    <span>
+                    </span>
+                    <span>
+                    </span>
+                </div>
+            </div>
+            <div class="menu-wrapper">
+                <div class="nav-indicator">
+                </div>
+                <ul class="menus">
+                    
+                     
+                        <li>
+                            <a class="wave " href="/">
+                                Home
+                            </a>
+                        </li>
+                     
+                        <li>
+                            <a class="wave " href="/archives">
+                                Archive
+                            </a>
+                        </li>
+                     
+                        <li>
+                            <a class="wave " href="/about">
+                                About
+                            </a>
+                        </li>
+                     
+                        <li>
+                            <a class="wave no-smoothstate" href="/atom.xml">
+                                RSS
+                            </a>
+                        </li>
+                     
+                    
+                   
+                </ul>
+            </div>
+        </nav>
+    </div>
+</div>
+            <div class="container content">
+                <div class="scene_element scene_element--fadein">
+                    <div class="row">
+    <div class="main">
+        <article>
+          
+          <header class="post-header">
+          
+          </header>
+          <h1 class="post-title">TCP长连接中断导致的业务问题</h1>
+
+          <section class="post-info">
+            <span class="post-date">2018/08/26</span>
+            
+            
+            <span class="post-tags">
+              <ul class="post-tag-list" itemprop="keywords"><li class="post-tag-list-item"><a class="post-tag-list-link" href="/tags/operations/" rel="tag">operations</a></li></ul>
+            </span>
+            
+          </section>
+
+          <section class="post-content">
+            <p>本周处理了客户的一个运维Case，是关于TCP长连接的问题，经过两天的排查，最终找到了问题的原因，觉得这个问题挺经典的，所以记录下来。</p>
+<p>在接手这个case之前，已经让运维工程师查了几天了，有了一些进展，但是我没有怎么过问，后来客户那边的运维老大打过来电话，特意说了这个事情，并且担忧的说到：“怎么上云有这么多问题，这以后怎么让我们放心？” 我意识到这个问题的严重性，之前这位客户就跟我聊天说过，他们的业务很关键，都是一些重量级的企业客户，得罪不起，上到云上都有哪些坑？有哪些地方需要注意的？我们还需要做哪些改进？</p>
+<p>我能理解客户的心情，即使告诉他我们已经有很多客户成功的上云，并且稳定运行很多年了，这些客户中也不乏大规模重量级的业务，但是他仍然没有信心，毕竟他们的业务跟别人不一样，毕竟他们现在看到有很多问题。我知道这不是三言两语就能让他放心的，不是说给他们部署了一个云平台，然后这个生意就算做完了，相反的是这才是万里长征的第一步，后面还有很多的事情和挑战，架构的优化调整，数据的容灾备份，业务的适配上云等等，对自己数据中心的变革绝不仅仅是找个厂商部署个云平台就算万事大吉了，而我们对自己的定位也绝不止步于此。</p>
+<h3 id="问题背景"><a href="#问题背景" class="headerlink" title="问题背景"></a>问题背景</h3><p>客户有一个Tomcat的应用从原来的物理机上迁移到云平台上，这个应用要通过http去请求一个服务器上的一个应用，这个服务器目前仍然在原来的物理环境里，物理环境和云平台通过三层将网络打通，原来都在物理环境里运行的没有问题，但是将Tomcat应用迁移到云平台之后，发现Tomcat应用到物理环境服务器的http连接无法正常返回，等很久之后连接就异常终止了。Tomcat应用是运行在Windows Server 2008里的，服务端是运行在一台Linux系统中的，还有个特殊点是这个http请求是个重量级的请求，一个请求发过去，正常情况下也要执行几分钟，甚至半小时才能正常返回。</p>
+<h3 id="问题分析"><a href="#问题分析" class="headerlink" title="问题分析"></a>问题分析</h3><p>因为该http请求可以直接在浏览器上发起，所以在Windows Server自带的IE 8浏览器进行测试，发现浏览器发起请求之后，差不多要等半个小时的时间请求才会失败，为了想看下该请求发起和返回的状态，使用Chrome浏览器进行了相同测试，发现Chrome浏览器竟然能够正常返回，而且只花了几分钟的时间，经过多次测试发现结果都是一样的，这两个浏览器发起的请求有什么区别呢？为什么一个正常，一个却不正常呢？</p>
+<p>为了弄清楚底层到底发生了什么，我们对服务端和客户端的网卡进行抓包分析，发现在请求发出去之后，即TCP连接建立起来之后，Chrome会周期性的发送ACK心跳包，服务端抓包情况，如下图：</p>
+<p><img src="/assets/tcp_keepalive_heatbeat.jpg"></p>
+<p>该心跳包是客户端用来保活该TCP连接的，防止TCP连接长时间处于空闲状态，导致被异常断开。当服务端处理完请求，发起断开TCP连接时，整个过程是可以正常断开的。然而IE浏览器发起的请求的行为却不是这样的，下图为IE浏览器测试情况下，在服务端抓包的情况：</p>
+<p>可以看到在TCP经过3次握手建立起来连接之后，一直到服务端处理完请求，发起断开连接的Fin包之前，一直没有心跳包，服务端发起的断开连接请求，客户端一直没有回应，但是此时服务端实际上已经处理完了请求，并且主动去断开连接。</p>
+<h3 id="问题验证"><a href="#问题验证" class="headerlink" title="问题验证"></a>问题验证</h3>
+          </section>
+        </article>
+        
+
+       
+        <div class="pager">
+          
+            <a class="post-prev pager-item" href="/2018/09/23/openstack/tripleo/heat-nested-stack.html" >
+              <strong class="article-nav-caption">Newer</strong>
+              <p class="post-nav-title">OpenStack Heat嵌套Stack解析</p>
+            </a>
+          
+          
+            <a class="post-next pager-item" href="/2017/09/11/openstack/gremlin/gremlin.html">
+              <strong class="article-nav-caption">Older</strong>
+              <p class="post-nav-title">OpenStack可靠性验证和故障演练-Gremlin</p>
+            </a>
+          
+        </div>
+        
+
+         <!-- comments -->
+        <div class="comment-section">
+  
+    
+    
+<link rel="stylesheet" href="/css/gitalk.css">
+
+    
+<script src="/lib/gitalk.min.js"></script>
+
+    <div id="gitalk-container"></div>
+    <script>
+      const gitalk = new Gitalk({
+        clientID: '54c13c09b0079cbb2386',
+        clientSecret: 'a4b61935040bb6a0ef0764889b6283a21fba00dd',
+        repo: 'hackerain.github.io',
+        owner: 'hackerain',
+        admin: ['hackerain'],
+        id: location.pathname.substr(11,30)+":"+location.pathname.split("").reduce(function(a,b){a=((a<<5)-a)+b.charCodeAt(0);return a&a},0),
+        distractionFreeMode: true
+      })
+      gitalk.render('gitalk-container')
+    </script>
+  
+
+
+</div>
+
+
+    </div>
+    
+</div>
+
+                </div>
+            </div>
+        </div>
+        <footer class="footer">
+    <p>由<a href="http://hexo.io/" target="_blank">Hexo</a>强力驱动，搭载<a target="_blank" rel="noopener" href="https://github.com/wayou/hexo-theme-gstyle">gstyle</a>主题</p>
+    <p>
+        &copy; 2020 hackerain
+    </p>
+</footer>
+
+<script src="/lib/jquery.js"></script>
+
+
+<script src="/lib/waves.js"></script>
+
+
+<script src="/lib/jquery-ui.js"></script>
+
+
+<script src="/lib/jquery.tocify.js"></script>
+
+
+<script src="/js/main.js"></script>
+
+
+    </body>
+</html>

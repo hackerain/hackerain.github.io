@@ -1,0 +1,23 @@
+@startuml cephx
+
+autonumber "<b>[00]"
+
+MonClient -> MonClient: set_want_keys(CEPH_ENTITY_TYPE_MON | CEPH_ENTITY_TYPE_OSD)
+MonClient -> Mon: MAuth: \n    entity_name
+Mon -> MonClient: MAuthReply: \n    server_challenge
+MonClient -> Mon: MAuth: \n    request_type = CEPHX_GET_AUTH_SESSION_KEY \n    req.key = (server_challenge + client_challenge)^keyring
+Mon -> Mon: req.key = (server_challenge + client_challenge)^keyring \ncephx_build_service_ticket_reply() -> session_key, ticket
+Mon -> MonClient: MAuthReply: \n    session_key \n    ticket
+MonClient -> MonClient: tickets.verify_service_ticket_reply() \nvalidate_tickets() \nauthorizer=ticket_handler->build_authorizer(global_id)
+MonClient -> Mon: MAuth: \n    request_type = CEPHX_GET_PRINCIPAL_SESSION_KEY \n    authorizer
+Mon -> Mon: cephx_verify_authorizer() \ncephx_build_service_ticket_reply()
+Mon -> MonClient: MAuthReply: \n    tickets
+MonClient -> MonClient: tickets.verify_service_ticket_reply() \nvalidate_tickets()
+MonClient -> MonClient: Pipe::connect() \n    build_authorizer(global_id)
+MonClient -> OSD: do_sendmsg()
+OSD -> OSD: Pipe::accept() \n     verify_authorizer() \n     get_auth_session_handler()
+OSD -> MonClient: reply.tag = CEPH_MSGR_TAG_READY
+MonClient -> MonClient: get_auth_session_handler()
+MonClient -> OSD: Pipe::writer() \n     sign_message()
+OSD -> OSD: Pipe::reader() \n     check_message_signature()
+@enduml

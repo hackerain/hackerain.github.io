@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+          <head>
+        <meta charset="utf-8">
+            
+            <title>
+                TripleO os-apply-config介绍 | 开心鬼
+            </title>
+            <meta content="width=device-width, initial-scale=1" name="viewport">
+            <meta name="theme-color" content="#4184f3">
+            
+            
+            <link href="/favicon.ico" rel="icon"/>
+            
+
+            
+<link rel="stylesheet" href="/css/highlight.light.css">
+
+            
+<link rel="stylesheet" href="/css/prism-customize.css">
+
+            
+<link rel="stylesheet" href="/css/nav-icon.css">
+
+            
+<link rel="stylesheet" href="/css/waves.min.css">
+
+            
+<link rel="stylesheet" href="/css/jquery.tocify.css">
+
+            
+<link rel="stylesheet" href="/css/main.css">
+
+            
+<link rel="stylesheet" href="/css/nav-indicator.css">
+
+            
+  
+  <!-- 百度统计 -->
+  <script>
+  var _hmt = _hmt || [];
+  (function() {
+    var hm = document.createElement("script");
+    hm.src = "//hm.baidu.com/hm.js?52c2063ad58df7e49e95e3ed44358e2c";
+    var s = document.getElementsByTagName("script")[0];
+    s.parentNode.insertBefore(hm, s);
+  })();
+  </script>
+  
+
+  
+            </meta>
+        </meta>
+    <meta name="generator" content="Hexo 5.1.1"></head>
+
+    <body>
+        <header>
+            <!-- cover image or sth. -->
+        </header>
+        <div id="main" class="m-scene">
+            
+<div class="nav-wrapper">
+
+    <div class="container">
+        <nav>
+            <div class="logo wave">
+                <a href="/" id="logo">
+                    开心鬼
+                </a>
+            </div>
+            <div class="nav-toggle-icon" >
+                <div class="material-hamburger">
+                    <span>
+                    </span>
+                    <span>
+                    </span>
+                    <span>
+                    </span>
+                </div>
+            </div>
+            <div class="menu-wrapper">
+                <div class="nav-indicator">
+                </div>
+                <ul class="menus">
+                    
+                     
+                        <li>
+                            <a class="wave " href="/">
+                                Home
+                            </a>
+                        </li>
+                     
+                        <li>
+                            <a class="wave " href="/archives">
+                                Archive
+                            </a>
+                        </li>
+                     
+                        <li>
+                            <a class="wave " href="/about">
+                                About
+                            </a>
+                        </li>
+                     
+                        <li>
+                            <a class="wave no-smoothstate" href="/atom.xml">
+                                RSS
+                            </a>
+                        </li>
+                     
+                    
+                   
+                </ul>
+            </div>
+        </nav>
+    </div>
+</div>
+            <div class="container content">
+                <div class="scene_element scene_element--fadein">
+                    <div class="row">
+    <div class="main">
+        <article>
+          
+          <header class="post-header">
+          
+          </header>
+          <h1 class="post-title">TripleO os-apply-config介绍</h1>
+
+          <section class="post-info">
+            <span class="post-date">2017/03/06</span>
+            
+            
+          </section>
+
+          <section class="post-content">
+            <p>os-apply-config是一个配置工具，它主要是从多个json格式的配置文件中，读取配置项，然后渲染预先定制好的模板，生成最终的配置文件，然后放置到相应的位置中去。</p>
+<p>这个json格式的配置文件，在os-apply-config中叫做metadata，就是定义了一些key-value值，用来渲染模板，os-apply-config提供了好几种方式来确定这些json文件，按照优先级如下：</p>
+<ol>
+<li>通过命令行中的<code>--metadata</code>选项来指定多个json文件：<code>--metadata [METADATA_FILE [METADATA_FILE ...]]</code></li>
+<li>如果<code>--metadata</code>没有指定，那么通过环境变量<code>OS_CONFIG_FILES</code>来指定，每个json文件以”:”分隔</li>
+<li>如果<code>OS_CONFIG_FILES</code>没有指定，那么通过命令行中的<code>--os-config-files</code>来指定，这个选项默认的值是<code>OS_CONFIG_FILES_PATH</code>环境变量指定的，这个环境变量默认的值为：<code>/var/lib/os-collect-config/os_config_files.json</code></li>
+<li>如果前面的选项都没有找到json文件，那么用<code>/var/run/os-collect-config/os_config_files.json</code>这个位置的json文件，这个是以前旧的配置项，要被dreprecated了</li>
+<li>不管前面的选项有没有找到json文件，都会使用<code>--fallback-metadata</code>指定的json文件，这个选项默认指定了3个json文件：<ul>
+<li><code>/var/cache/heat-cfntools/last_metadata</code></li>
+<li><code>/var/lib/heat-cfntools/cfn-init-data</code></li>
+<li><code>/var/lib/cloud/data/cfn-init-data</code></li>
+</ul>
+</li>
+</ol>
+<p>这些json配置文件中的配置项最终都会被合并到一个dict对象中，用来渲染模板。</p>
+<p>os-apply-config的模板由配置项<code>--templates</code>指定，这个配置项默认值由以下方式确定：</p>
+<ol>
+<li>由<code>OS_CONFIG_APPLIER_TEMPLATES</code>环境变量指定，默认为None</li>
+<li><code>/opt/stack/os-apply-config/templates</code></li>
+<li><code>/opt/stack/os-config-applier/templates</code></li>
+<li><code>/usr/libexec/os-apply-config/templates</code>，该值为默认值</li>
+</ol>
+<p>生成的最终的配置文件，放置的位置由<code>--output</code>配置项指定，默认为根目录”/“。</p>
+<p>举个例子，有如下的文件：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">[root@localhost os-apply-config]# tree</span><br><span class="line">.</span><br><span class="line">├── config</span><br><span class="line">│   └── os_config_files.json</span><br><span class="line">├── output</span><br><span class="line">└── templates</span><br><span class="line">    └── etc</span><br><span class="line">        └── nova.conf</span><br></pre></td></tr></table></figure>
+
+<p>templates/etc/nova.conf内容如下：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">[database]</span><br><span class="line">&#123;&#123;#nova.db&#125;&#125;</span><br><span class="line">connection&#x3D;&#123;&#123;nova.db&#125;&#125;</span><br><span class="line">&#123;&#123;&#x2F;nova.db&#125;&#125;</span><br></pre></td></tr></table></figure>
+
+<p>config/os_<em>config_files.json内容如下：</em></p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">&#123;</span><br><span class="line">  &quot;nova&quot;:&#123;</span><br><span class="line">    &quot;db&quot;: &quot;mysql:&#x2F;&#x2F;nova:unset@localhost&#x2F;nova&quot;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>执行下面的命令：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"># os-apply-config -t templates&#x2F; -m config&#x2F;os_config_files.json -o output&#x2F;</span><br><span class="line">[2017&#x2F;03&#x2F;05 11:59:07 PM] [INFO] writing output&#x2F;etc&#x2F;nova.conf</span><br><span class="line">[2017&#x2F;03&#x2F;05 11:59:07 PM] [INFO] success</span><br></pre></td></tr></table></figure>
+
+<p>在output目录下就会生成相应的配置文件：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">[root@localhost os-apply-config]# tree</span><br><span class="line">.</span><br><span class="line">├── config</span><br><span class="line">│   └── os_config_files.json</span><br><span class="line">├── output</span><br><span class="line">│   └── etc</span><br><span class="line">│       └── nova.conf</span><br><span class="line">└── templates</span><br><span class="line">    └── etc</span><br><span class="line">        └── nova.conf</span><br></pre></td></tr></table></figure>
+
+<p>output/etc/nova.conf内容如下：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">[database]</span><br><span class="line">connection&#x3D;mysql:&#x2F;&#x2F;nova:unset@localhost&#x2F;nova</span><br></pre></td></tr></table></figure>
+
+<p>可见，使用os-apply-config可以方便的生成一组配置文件，默认的output是根目录，就会将etc等配置文件全部配置到相应的位置，这在部署undercloud和overcloud时都会被用到。</p>
+<p>os-apply-config还有一个作用就是指定key值，然后输出对应的value值，如下：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"># os-apply-config -t templates&#x2F; -m config&#x2F;os_config_files.json --key nova --type raw</span><br><span class="line">&#123;&quot;db&quot;: &quot;mysql:&#x2F;&#x2F;nova:unset@localhost&#x2F;nova&quot;&#125;</span><br><span class="line"># os-apply-config -t templates&#x2F; -m config&#x2F;os_config_files.json --key nova.db --type raw</span><br><span class="line">mysql:&#x2F;&#x2F;nova:unset@localhost&#x2F;nova</span><br></pre></td></tr></table></figure>
+
+
+
+
+          </section>
+        </article>
+        
+
+       
+        <div class="pager">
+          
+            <a class="post-prev pager-item" href="/2017/03/06/openstack/tripleo/instack.html" >
+              <strong class="article-nav-caption">Newer</strong>
+              <p class="post-nav-title">TripleO instack介绍</p>
+            </a>
+          
+          
+            <a class="post-next pager-item" href="/2017/03/06/openstack/tripleo/os_refresh_config.html">
+              <strong class="article-nav-caption">Older</strong>
+              <p class="post-nav-title">TripleO os-refresh-config介绍</p>
+            </a>
+          
+        </div>
+        
+
+         <!-- comments -->
+        <div class="comment-section">
+  
+    
+    
+<link rel="stylesheet" href="/css/gitalk.css">
+
+    
+<script src="/lib/gitalk.min.js"></script>
+
+    <div id="gitalk-container"></div>
+    <script>
+      const gitalk = new Gitalk({
+        clientID: '54c13c09b0079cbb2386',
+        clientSecret: 'a4b61935040bb6a0ef0764889b6283a21fba00dd',
+        repo: 'hackerain.github.io',
+        owner: 'hackerain',
+        admin: ['hackerain'],
+        id: location.pathname.substr(11,30)+":"+location.pathname.split("").reduce(function(a,b){a=((a<<5)-a)+b.charCodeAt(0);return a&a},0),
+        distractionFreeMode: true
+      })
+      gitalk.render('gitalk-container')
+    </script>
+  
+
+
+</div>
+
+
+    </div>
+    
+</div>
+
+                </div>
+            </div>
+        </div>
+        <footer class="footer">
+    <p>由<a href="http://hexo.io/" target="_blank">Hexo</a>强力驱动，搭载<a target="_blank" rel="noopener" href="https://github.com/wayou/hexo-theme-gstyle">gstyle</a>主题</p>
+    <p>
+        &copy; 2020 hackerain
+    </p>
+</footer>
+
+<script src="/lib/jquery.js"></script>
+
+
+<script src="/lib/waves.js"></script>
+
+
+<script src="/lib/jquery-ui.js"></script>
+
+
+<script src="/lib/jquery.tocify.js"></script>
+
+
+<script src="/js/main.js"></script>
+
+
+    </body>
+</html>

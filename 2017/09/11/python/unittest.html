@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+          <head>
+        <meta charset="utf-8">
+            
+            <title>
+                Python单元测试—深入理解unittest | 开心鬼
+            </title>
+            <meta content="width=device-width, initial-scale=1" name="viewport">
+            <meta name="theme-color" content="#4184f3">
+            
+            
+            <link href="/favicon.ico" rel="icon"/>
+            
+
+            
+<link rel="stylesheet" href="/css/highlight.light.css">
+
+            
+<link rel="stylesheet" href="/css/prism-customize.css">
+
+            
+<link rel="stylesheet" href="/css/nav-icon.css">
+
+            
+<link rel="stylesheet" href="/css/waves.min.css">
+
+            
+<link rel="stylesheet" href="/css/jquery.tocify.css">
+
+            
+<link rel="stylesheet" href="/css/main.css">
+
+            
+<link rel="stylesheet" href="/css/nav-indicator.css">
+
+            
+  
+  <!-- 百度统计 -->
+  <script>
+  var _hmt = _hmt || [];
+  (function() {
+    var hm = document.createElement("script");
+    hm.src = "//hm.baidu.com/hm.js?52c2063ad58df7e49e95e3ed44358e2c";
+    var s = document.getElementsByTagName("script")[0];
+    s.parentNode.insertBefore(hm, s);
+  })();
+  </script>
+  
+
+  
+            </meta>
+        </meta>
+    <meta name="generator" content="Hexo 5.1.1"></head>
+
+    <body>
+        <header>
+            <!-- cover image or sth. -->
+        </header>
+        <div id="main" class="m-scene">
+            
+<div class="nav-wrapper">
+
+    <div class="container">
+        <nav>
+            <div class="logo wave">
+                <a href="/" id="logo">
+                    开心鬼
+                </a>
+            </div>
+            <div class="nav-toggle-icon" >
+                <div class="material-hamburger">
+                    <span>
+                    </span>
+                    <span>
+                    </span>
+                    <span>
+                    </span>
+                </div>
+            </div>
+            <div class="menu-wrapper">
+                <div class="nav-indicator">
+                </div>
+                <ul class="menus">
+                    
+                     
+                        <li>
+                            <a class="wave " href="/">
+                                Home
+                            </a>
+                        </li>
+                     
+                        <li>
+                            <a class="wave " href="/archives">
+                                Archive
+                            </a>
+                        </li>
+                     
+                        <li>
+                            <a class="wave " href="/about">
+                                About
+                            </a>
+                        </li>
+                     
+                        <li>
+                            <a class="wave no-smoothstate" href="/atom.xml">
+                                RSS
+                            </a>
+                        </li>
+                     
+                    
+                   
+                </ul>
+            </div>
+        </nav>
+    </div>
+</div>
+            <div class="container content">
+                <div class="scene_element scene_element--fadein">
+                    <div class="row">
+    <div class="main">
+        <article>
+          
+          <header class="post-header">
+          
+          </header>
+          <h1 class="post-title">Python单元测试—深入理解unittest</h1>
+
+          <section class="post-info">
+            <span class="post-date">2017/09/11</span>
+            
+            
+            <span class="post-tags">
+              <ul class="post-tag-list" itemprop="keywords"><li class="post-tag-list-item"><a class="post-tag-list-link" href="/tags/python/" rel="tag">python</a></li></ul>
+            </span>
+            
+          </section>
+
+          <section class="post-content">
+            <p>单元测试的重要性就不多说了，可恶的是python中有太多的单元测试框架和工具，什么unittest, testtools, subunit, coverage, testrepository, nose, mox, mock, fixtures, discover，再加上setuptools, distutils等等这些，先不说如何写单元测试，光是怎么运行单元测试就有N多种方法，再因为它是测试而非功能，是很多人没兴趣触及的东西。但是作为一个优秀的程序员，不仅要写好功能代码，写好测试代码一样的彰显你的实力。如此多的框架和工具，很容易让人困惑，困惑的原因是因为并没有理解它的基本原理，如果一些基本的概念都不清楚，怎么能够写出思路清晰的测试代码？</p>
+<p>今天的主题就是unittest，作为标准python中的一个模块，是其它框架和工具的基础，参考资料是它的官方文档：<a target="_blank" rel="noopener" href="http://docs.python.org/2.7/library/unittest.html">unittest</a>和源代码，文档已经写的非常好了，我在这里记录的主要是它的一些重要概念、关键点以及可能会碰到的一些坑，目的在于对unittest加深理解，而不是停留在泛泛的表面层上。</p>
+<p>unittest是一个python版本的junit，junit是java中的单元测试框架，对java的单元测试，有一句话很贴切：Keep the bar green，相信使用eclipse写过java单元测试的都心领神会。unittest实现了很多junit中的概念，比如我们非常熟悉的test case, test suite等，总之，原理都是相通的，只是用不同的语言表达出来。</p>
+<p>在文档的开篇就介绍了unittest中的4个重要的概念：test fixture, test case, test suite, test runner，我觉得只有理解了这几个概念，才能真正的理解单元测试的基本原理，下面就主要围绕这几个概念来展开这篇文章。</p>
+<p>首先通过查看unittest的源码，来看一下这几个概念，以及他们之间的关系，他们是如何在一起工作的，其静态类图如下：</p>
+<p><img src="/assets/python_unittest.jpg"></p>
+<ul>
+<li>一个TestCase的实例就是一个测试用例。什么是测试用例呢？就是一个完整的测试流程，包括测试前准备环境的搭建(setUp)，执行测试代码(run)，以及测试后环境的还原(tearDown)。元测试(unit test)的本质也就在这里，一个测试用例是一个完整的测试单元，通过运行这个测试单元，可以对某一个问题进行验证。</li>
+<li>而多个测试用例集合在一起，就是TestSuite，而且TestSuite也可以嵌套TestSuite。</li>
+<li>TestLoader是用来加载TestCase到TestSuite中的，其中有几个loadTestsFrom__()方法，就是从各个地方寻找TestCase，创建它们的实例，然后add到TestSuite中，再返回一个TestSuite实例。</li>
+<li>TextTestRunner是来执行测试用例的，其中的run(test)会执行TestSuite/TestCase中的run(result)方法。</li>
+<li>测试的结果会保存到TextTestResult实例中，包括运行了多少测试用例，成功了多少，失败了多少等信息。</li>
+</ul>
+<p>这样整个流程就清楚了，首先是要写好TestCase，然后由TestLoader加载TestCase到TestSuite，然后由TextTestRunner来运行TestSuite，运行的结果保存在TextTestResult中，整个过程集成在unittest.main模块中。</p>
+<p>现在已经涉及到了test case, test suite, test runner这三个概念了，还有test fixture没有提到，那什么是test fixture呢？？在TestCase的docstring中有这样一段话：</p>
+<blockquote>
+<p>Test authors should subclass TestCase for their own tests. Construction and deconstruction of the test’s environment (‘fixture’) can be implemented by overriding the ‘setUp’ and ‘tearDown’ methods respectively.</p>
+</blockquote>
+<p>可见，对一个测试用例环境的搭建和销毁，是一个fixture，通过覆盖TestCase的setUp()和tearDown()方法来实现。这个有什么用呢？比如说在这个测试用例中需要访问数据库，那么可以在setUp()中建立数据库连接以及进行一些初始化，在tearDown()中清除在数据库中产生的数据，然后关闭连接。注意tearDown的过程很重要，要为以后的TestCase留下一个干净的环境。关于fixture，还有一个专门的库函数叫做fixtures，功能更加强大，以后会介绍到。</p>
+<p>至此，概念和流程基本清楚了，下面通过简单的例子再来实践一下，就拿unittest文档上的例子吧：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br></pre></td><td class="code"><pre><span class="line">import random</span><br><span class="line">import unittest</span><br><span class="line"></span><br><span class="line">class TestSequenceFunctions(unittest.TestCase):</span><br><span class="line"></span><br><span class="line">    def setUp(self):</span><br><span class="line">        self.seq &#x3D; range(10)</span><br><span class="line"></span><br><span class="line">    def test_shuffle(self):</span><br><span class="line">        # make sure the shuffled sequence does not lose any elements</span><br><span class="line">        random.shuffle(self.seq)</span><br><span class="line">        self.seq.sort()</span><br><span class="line">        self.assertEqual(self.seq, range(10))</span><br><span class="line"></span><br><span class="line">        # should raise an exception for an immutable sequence</span><br><span class="line">        self.assertRaises(TypeError, random.shuffle, (1,2,3))</span><br><span class="line"></span><br><span class="line">    def test_choice(self):</span><br><span class="line">        element &#x3D; random.choice(self.seq)</span><br><span class="line">        self.assertTrue(element in self.seq)</span><br><span class="line"></span><br><span class="line">    def test_sample(self):</span><br><span class="line">        with self.assertRaises(ValueError):</span><br><span class="line">            random.sample(self.seq, 20)</span><br><span class="line">        for element in random.sample(self.seq, 5):</span><br><span class="line">            self.assertTrue(element in self.seq)</span><br><span class="line"></span><br><span class="line">if __name__ &#x3D;&#x3D; &#39;__main__&#39;:</span><br><span class="line">    unittest.main()</span><br></pre></td></tr></table></figure>
+<p>TestSequenceFunctions继承自unittest.TestCase，重写了setUp()方法，并且定义了三个以’test’开头的方法，那这个TestSequenceFunctions类到底是个什么呢？它是一个测试用例，还是三个测试用例？说是三个测试用例的话，它本身继承自TestCase，说是一个测试用例的话，里面又有三个test_*()方法，明显是三个测试用例。其实，我们只要看一些TestLoader是如何加载测试用例的，就一清二楚了，在loader.TestLoader类中有一个loadTestsFromTestCase()方法：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">def loadTestsFromTestCase(self, testCaseClass):</span><br><span class="line">    &quot;&quot;&quot;Return a suite of all tests cases contained in testCaseClass&quot;&quot;&quot;</span><br><span class="line">    if issubclass(testCaseClass, suite.TestSuite):</span><br><span class="line">        raise TypeError(&quot;Test cases should not be derived from TestSuite.&quot; \</span><br><span class="line">                            &quot; Maybe you meant to derive from TestCase?&quot;)</span><br><span class="line">    testCaseNames &#x3D; self.getTestCaseNames(testCaseClass)</span><br><span class="line">    if not testCaseNames and hasattr(testCaseClass, &#39;runTest&#39;):</span><br><span class="line">        testCaseNames &#x3D; [&#39;runTest&#39;]</span><br><span class="line">    loaded_suite &#x3D; self.suiteClass(map(testCaseClass, testCaseNames))</span><br><span class="line">    return loaded_suite</span><br></pre></td></tr></table></figure>
+
+<p>getTestCaseNames()是从TestCase这个类中找所有以“test”开头的方法，然后注意第9行，在构造TestSuite对象时，其参数使用了一个map方法，即对testCaseNames中的每一个元素，使用testCaseClass为其构造对象，其结果是一个TestCase的对象集合，可以用下面的代码来分步说明：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">testcases &#x3D; []</span><br><span class="line">for name in testCaeNames:</span><br><span class="line">    testcases.append(TestCase(name))</span><br><span class="line">loaded_suite &#x3D; self.suiteClass(tuple(testcases))</span><br></pre></td></tr></table></figure>
+
+<p>可见，对每一个以test开头的方法，都为其构建了一个TestCase对象，值得注意的是，如果没有定义test开头的方法，而是将测试代码写到了一个名为runTest的方法中，那么会为该runTest方法构建TestCase对象，如果定义了test开头的方法，就会忽略runTest方法。</p>
+<p>至此，基本就清楚了，每一个以test开头的方法，都会为其构建TestCase对象，也就是说TestSequenceFunctions类中其实定义了三个TestCase，之所以写成这样，是为了方便，因为这几个测试用例的fixture是相同的，如果每一个测试用例单独写成一个TestCase的话，会有很多的冗余代码。</p>
+<p>明白了这些，文档就可以很轻松的看懂了，至于怎么运行测试用例，以及其他的内容，直接看文档吧。</p>
+
+          </section>
+        </article>
+        
+
+       
+        <div class="pager">
+          
+            <a class="post-prev pager-item" href="/2017/09/11/openstack/gremlin/gremlin.html" >
+              <strong class="article-nav-caption">Newer</strong>
+              <p class="post-nav-title">OpenStack可靠性验证和故障演练-Gremlin</p>
+            </a>
+          
+          
+            <a class="post-next pager-item" href="/2017/04/23/openstack/tripleo/heat_basics.html">
+              <strong class="article-nav-caption">Older</strong>
+              <p class="post-nav-title">Heat基础知识</p>
+            </a>
+          
+        </div>
+        
+
+         <!-- comments -->
+        <div class="comment-section">
+  
+    
+    
+<link rel="stylesheet" href="/css/gitalk.css">
+
+    
+<script src="/lib/gitalk.min.js"></script>
+
+    <div id="gitalk-container"></div>
+    <script>
+      const gitalk = new Gitalk({
+        clientID: '54c13c09b0079cbb2386',
+        clientSecret: 'a4b61935040bb6a0ef0764889b6283a21fba00dd',
+        repo: 'hackerain.github.io',
+        owner: 'hackerain',
+        admin: ['hackerain'],
+        id: location.pathname.substr(11,30)+":"+location.pathname.split("").reduce(function(a,b){a=((a<<5)-a)+b.charCodeAt(0);return a&a},0),
+        distractionFreeMode: true
+      })
+      gitalk.render('gitalk-container')
+    </script>
+  
+
+
+</div>
+
+
+    </div>
+    
+</div>
+
+                </div>
+            </div>
+        </div>
+        <footer class="footer">
+    <p>由<a href="http://hexo.io/" target="_blank">Hexo</a>强力驱动，搭载<a target="_blank" rel="noopener" href="https://github.com/wayou/hexo-theme-gstyle">gstyle</a>主题</p>
+    <p>
+        &copy; 2020 hackerain
+    </p>
+</footer>
+
+<script src="/lib/jquery.js"></script>
+
+
+<script src="/lib/waves.js"></script>
+
+
+<script src="/lib/jquery-ui.js"></script>
+
+
+<script src="/lib/jquery.tocify.js"></script>
+
+
+<script src="/js/main.js"></script>
+
+
+    </body>
+</html>

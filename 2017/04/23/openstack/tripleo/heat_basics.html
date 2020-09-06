@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+          <head>
+        <meta charset="utf-8">
+            
+            <title>
+                Heat基础知识 | 开心鬼
+            </title>
+            <meta content="width=device-width, initial-scale=1" name="viewport">
+            <meta name="theme-color" content="#4184f3">
+            
+            
+            <link href="/favicon.ico" rel="icon"/>
+            
+
+            
+<link rel="stylesheet" href="/css/highlight.light.css">
+
+            
+<link rel="stylesheet" href="/css/prism-customize.css">
+
+            
+<link rel="stylesheet" href="/css/nav-icon.css">
+
+            
+<link rel="stylesheet" href="/css/waves.min.css">
+
+            
+<link rel="stylesheet" href="/css/jquery.tocify.css">
+
+            
+<link rel="stylesheet" href="/css/main.css">
+
+            
+<link rel="stylesheet" href="/css/nav-indicator.css">
+
+            
+  
+  <!-- 百度统计 -->
+  <script>
+  var _hmt = _hmt || [];
+  (function() {
+    var hm = document.createElement("script");
+    hm.src = "//hm.baidu.com/hm.js?52c2063ad58df7e49e95e3ed44358e2c";
+    var s = document.getElementsByTagName("script")[0];
+    s.parentNode.insertBefore(hm, s);
+  })();
+  </script>
+  
+
+  
+            </meta>
+        </meta>
+    <meta name="generator" content="Hexo 5.1.1"></head>
+
+    <body>
+        <header>
+            <!-- cover image or sth. -->
+        </header>
+        <div id="main" class="m-scene">
+            
+<div class="nav-wrapper">
+
+    <div class="container">
+        <nav>
+            <div class="logo wave">
+                <a href="/" id="logo">
+                    开心鬼
+                </a>
+            </div>
+            <div class="nav-toggle-icon" >
+                <div class="material-hamburger">
+                    <span>
+                    </span>
+                    <span>
+                    </span>
+                    <span>
+                    </span>
+                </div>
+            </div>
+            <div class="menu-wrapper">
+                <div class="nav-indicator">
+                </div>
+                <ul class="menus">
+                    
+                     
+                        <li>
+                            <a class="wave " href="/">
+                                Home
+                            </a>
+                        </li>
+                     
+                        <li>
+                            <a class="wave " href="/archives">
+                                Archive
+                            </a>
+                        </li>
+                     
+                        <li>
+                            <a class="wave " href="/about">
+                                About
+                            </a>
+                        </li>
+                     
+                        <li>
+                            <a class="wave no-smoothstate" href="/atom.xml">
+                                RSS
+                            </a>
+                        </li>
+                     
+                    
+                   
+                </ul>
+            </div>
+        </nav>
+    </div>
+</div>
+            <div class="container content">
+                <div class="scene_element scene_element--fadein">
+                    <div class="row">
+    <div class="main">
+        <article>
+          
+          <header class="post-header">
+          
+          </header>
+          <h1 class="post-title">Heat基础知识</h1>
+
+          <section class="post-info">
+            <span class="post-date">2017/04/23</span>
+            
+            
+          </section>
+
+          <section class="post-content">
+            <p>在TripleO中使用到了很多Heat中的语法，需要理解这些基本的语法才能够理解Heat Template。Heat中自定义了一套描述式语言，称为HOT(Heat Orchestration Template)，用来描述整个软件栈，包括如何创建资源，如何配置资源等等，HOT中描述的软件栈被抽象成<code>stack</code>，可以定义输入，输出，参数，资源等等，一个stack还可以嵌套其他stack，Heat默认集成了OpenStackh很多组件，可以通过HOT来管理OpenStack资源，此外，还集成了Puppet/Ansible等配置管理工具，形成了一套完整的体系，功能十分强大，这里就主要介绍下部署TripleO过程中用到的Heat一些基础知识。</p>
+<h4 id="什么是Stack以及嵌套Stack"><a href="#什么是Stack以及嵌套Stack" class="headerlink" title="什么是Stack以及嵌套Stack"></a>什么是Stack以及嵌套Stack</h4><p>一个Stack可以说是一个模板描述的软件栈的一个实例，在一个Stack中定义了输入，输出，以及资源这3个主要属性，给出特定的输入，这个Stack会创建定义的资源，然后给出特定的输出，一个包含了输入，输出以及资源的模板，就可以实例化出一个Stack。在TripleO里，充分运用了嵌套stack的概念，只有理解什么是一个Stack，才能够更好的界定TripleO的中定义的模板。比如有如下模板：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br></pre></td><td class="code"><pre><span class="line">[stack@pre4-undercloud demos]$ cat test_security.yaml</span><br><span class="line">heat_template_version: 2016-10-14</span><br><span class="line"></span><br><span class="line">parameters:</span><br><span class="line">  CloudName:</span><br><span class="line">    default: overcloud.localdomain</span><br><span class="line">    description: the cloud name</span><br><span class="line">    type: string</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">resources:</span><br><span class="line">  HorizonSecurity:</span><br><span class="line">    type: OS::Heat::RandomString</span><br><span class="line"></span><br><span class="line">  NovaSecurity:</span><br><span class="line">    type: .&#x2F;test_nova_security.yaml</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">outputs:</span><br><span class="line">  SecurityOutput:</span><br><span class="line">    description: some descs</span><br><span class="line">    value:</span><br><span class="line">      HorizonSecurityOutput: &#123;get_attr: [HorizonSecurity, value]&#125;</span><br><span class="line">      NovaSecurityOutput: &#123;get_attr: [NovaSecurity, NovaSecurityOutput]&#125;</span><br><span class="line"></span><br><span class="line">  SecurityStringOutput:</span><br><span class="line">    description: some desc</span><br><span class="line">    value:</span><br><span class="line">      str_replace:</span><br><span class="line">        template: This is HorizonSecurityOutput and NovaSecurityOutput in CloudName</span><br><span class="line">        params:</span><br><span class="line">          HorizonSecurityOutput: &#123;get_attr: [HorizonSecurity, value]&#125;</span><br><span class="line">          NovaSecurityOutput: &#123;get_attr: [NovaSecurity, NovaSecurityOutput]&#125;</span><br><span class="line">          CloudName: &#123;get_param: CloudName&#125;</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">[stack@pre4-undercloud demos]$ cat test_nova_security.yaml</span><br><span class="line">heat_template_version: 2016-10-14</span><br><span class="line"></span><br><span class="line">resources:</span><br><span class="line">  NovaSecurity:</span><br><span class="line">    type: OS::Heat::RandomString</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">outputs:</span><br><span class="line">  NovaSecurityOutput:</span><br><span class="line">    description: some descs</span><br><span class="line">    value: &#123;get_attr: [NovaSecurity, value]&#125;</span><br></pre></td></tr></table></figure>
+
+<p>test_security.yaml嵌套了test_nova_security.yaml，两个模板都定义了输入，输出以及资源，该例子中使用的资源类型是Heat中定义的生成随机字符串，使用如下的命令可以从模板创建stack:</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">openstack stack create -t test_security.yaml test_security</span><br></pre></td></tr></table></figure>
+
+<p>创建好之后，查看创建的stack:</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">[stack@pre4-undercloud demos]$ openstack stack list</span><br><span class="line">+--------------------------------------+---------------+-----------------+----------------------+--------------+</span><br><span class="line">| ID                                   | Stack Name    | Stack Status    | Creation Time        | Updated Time |</span><br><span class="line">+--------------------------------------+---------------+-----------------+----------------------+--------------+</span><br><span class="line">| b3c8a10f-9b7e-49a2-a150-4fa2078c1093 | test_security | CREATE_COMPLETE | 2017-04-20T14:34:39Z | None         |</span><br><span class="line">+--------------------------------------+---------------+-----------------+----------------------+--------------+</span><br></pre></td></tr></table></figure>
+
+<p>加上–nested可以查看所有嵌套的stack:</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">[stack@pre4-undercloud demos]$ openstack stack list --nested</span><br><span class="line">+--------------------------------+--------------------------------+-----------------+----------------------+--------------+----------------------------------+</span><br><span class="line">| ID                             | Stack Name                     | Stack Status    | Creation Time        | Updated Time | Parent                           |</span><br><span class="line">+--------------------------------+--------------------------------+-----------------+----------------------+--------------+----------------------------------+</span><br><span class="line">| 9844af34-1dcc-489a-80db-       | test_security-NovaSecurity-    | CREATE_COMPLETE | 2017-04-20T14:34:40Z | None         | b3c8a10f-9b7e-                   |</span><br><span class="line">| 953f76baea4a                   | fl2f6un4mvpt                   |                 |                      |              | 49a2-a150-4fa2078c1093           |</span><br><span class="line">| b3c8a10f-9b7e-                 | test_security                  | CREATE_COMPLETE | 2017-04-20T14:34:39Z | None         | None                             |</span><br><span class="line">| 49a2-a150-4fa2078c1093         |                                |                 |                      |              |                                  |</span><br><span class="line">+--------------------------------+--------------------------------+-----------------+----------------------+--------------+----------------------------------+</span><br></pre></td></tr></table></figure>
+
+<p>可以查看某个stack的输出：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line">[stack@pre4-undercloud demos]$ openstack stack output show test_security --all</span><br><span class="line">+----------------------+------------------------------------------------------------------------------------------------------------------------------+</span><br><span class="line">| Field                | Value                                                                                                                        |</span><br><span class="line">+----------------------+------------------------------------------------------------------------------------------------------------------------------+</span><br><span class="line">| SecurityStringOutput | &#123;                                                                                                                            |</span><br><span class="line">|                      |   &quot;output_value&quot;: &quot;This is zwinXyb5q12VTMSNyEnyfyGBL6mWwbLF and qa31seo3eLE9UJTfegmaPhUfIqJXDiQ7 in overcloud.localdomain&quot;,  |</span><br><span class="line">|                      |   &quot;output_key&quot;: &quot;SecurityStringOutput&quot;,                                                                                      |</span><br><span class="line">|                      |   &quot;description&quot;: &quot;some desc&quot;                                                                                                 |</span><br><span class="line">|                      | &#125;                                                                                                                            |</span><br><span class="line">| SecurityOutput       | &#123;                                                                                                                            |</span><br><span class="line">|                      |   &quot;output_value&quot;: &#123;                                                                                                          |</span><br><span class="line">|                      |     &quot;HorizonSecurityOutput&quot;: &quot;zwinXyb5q12VTMSNyEnyfyGBL6mWwbLF&quot;,                                                             |</span><br><span class="line">|                      |     &quot;NovaSecurityOutput&quot;: &quot;qa31seo3eLE9UJTfegmaPhUfIqJXDiQ7&quot;                                                                 |</span><br><span class="line">|                      |   &#125;,                                                                                                                         |</span><br><span class="line">|                      |   &quot;output_key&quot;: &quot;SecurityOutput&quot;,                                                                                            |</span><br><span class="line">|                      |   &quot;description&quot;: &quot;some descs&quot;                                                                                                |</span><br><span class="line">|                      | &#125;                                                                                                                            |</span><br><span class="line">+----------------------+------------------------------------------------------------------------------------------------------------------------------+</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">[stack@pre4-undercloud demos]$ openstack stack output show test_security-NovaSecurity-fl2f6un4mvpt --all</span><br><span class="line">+--------------------+--------------------------------------------------------+</span><br><span class="line">| Field              | Value                                                  |</span><br><span class="line">+--------------------+--------------------------------------------------------+</span><br><span class="line">| NovaSecurityOutput | &#123;                                                      |</span><br><span class="line">|                    |   &quot;output_value&quot;: &quot;qa31seo3eLE9UJTfegmaPhUfIqJXDiQ7&quot;,  |</span><br><span class="line">|                    |   &quot;output_key&quot;: &quot;NovaSecurityOutput&quot;,                  |</span><br><span class="line">|                    |   &quot;description&quot;: &quot;some descs&quot;                          |</span><br><span class="line">|                    | &#125;                                                      |</span><br><span class="line">+--------------------+--------------------------------------------------------+</span><br></pre></td></tr></table></figure>
+
+<p>从以上的例子中可以看到，只要一个模板定义了输入，输出，以及资源，那它就是一个stack，一个stack的输出是保存在Heat的数据库中的，生成的output类型可以是字符串，可以是对象，还可以是数组等等。Heat中还定义了一些内置的方法，用来执行一些特定任务，比如该例子中用到的str_template，就是定义了一个模板，然后传递了模板变量，在Heat中渲染成了一个字符串，这些内置方法只能在resources的properties字段和outputs字段使用。</p>
+<p>知道了一个Stack的构成之后，我们重点介绍几个Resource，这几个Resource是在TripleO中频繁使用的，对理解TripleO Heat Template非常重要。</p>
+<h4 id="OS-Heat-RandomString"><a href="#OS-Heat-RandomString" class="headerlink" title="OS::Heat::RandomString"></a>OS::Heat::RandomString</h4><p>这个是生成一个随机字符串，这在上面的例子中已经介绍过了。</p>
+<h4 id="OS-Heat-ResourceChain"><a href="#OS-Heat-ResourceChain" class="headerlink" title="OS::Heat::ResourceChain"></a>OS::Heat::ResourceChain</h4><p>使用相同的配置创建一个或多个资源，这些资源是通过一个列表来指定的，由<code>resources</code>参数指定，此外还可以加上<code>concurrent</code>参数，并发的创建这些资源，如果不指定<code>concurrent</code>或者设置为false，那么就会按照顺序一个一个创建。</p>
+<h4 id="OS-Heat-ResourceGroup"><a href="#OS-Heat-ResourceGroup" class="headerlink" title="OS::Heat::ResourceGroup"></a>OS::Heat::ResourceGroup</h4><p>也是创建一组配置相同的资源，但是这个和ResourceChain不同的是，它指定的是创建数量，由<code>count</code>参数指定，而不是一个列表，并且是并发创建的，不能控制顺序。它在TripleO里面用来创建Nova里面的Server，即一次性创建指定数量的节点。</p>
+<h4 id="OS-Heat-SoftwareConfig"><a href="#OS-Heat-SoftwareConfig" class="headerlink" title="OS::Heat::SoftwareConfig"></a>OS::Heat::SoftwareConfig</h4><p>SoftwareConfig在TripleO里面作用很重要，是用来定义配置信息的，有两个参数比较重要：一个是<code>config</code>，用来指定配置信息，比如一段脚本，或者Puppet代码，一个是<code>group</code>，用来指定是哪种类型的配置信息，如果<code>config</code>指定的是一段脚本，那么<code>group</code>就是<code>script</code>，如果<code>config</code>是一段<code>puppet</code>代码，那么<code>group</code>就是<code>puppet</code>，根据<code>group</code>的不同，在应用这段配置的时候，会相应的选择不同的策略去执行。需要注意的是<code>config</code>里指定的配置信息是一段字符串，当创建了SoftwareConfig这个resource时，并没有应用这个配置，而仅仅是把配置信息保存在了Heat的数据库中，会被其他的resource引用。</p>
+<h4 id="OS-Heat-StructuredConfig"><a href="#OS-Heat-StructuredConfig" class="headerlink" title="OS::Heat::StructuredConfig"></a>OS::Heat::StructuredConfig</h4><p>StructuredConfig和SoftwareConfig的作用是一样的，不同的是SoftwareConfig中的config指定的是一段字符串，而StructuredConfig中的config指定的是一个结构化的数据，即是一个Map，这对一些使用YAML或者JSON作为配置语言的配置工具来说是有用的。</p>
+<h4 id="OS-Heat-SoftwareDeployment"><a href="#OS-Heat-SoftwareDeployment" class="headerlink" title="OS::Heat::SoftwareDeployment"></a>OS::Heat::SoftwareDeployment</h4><p>SoftwareDeployment就是真正的将上面定义的配置信息部署到某个Server上，需要指定两个参数：一个是<code>config</code>，即对上面定义的SoftwareConfig或者是StructuredConfig的引用，一个是<code>server</code>，是对某个资源的引用，通常是一个Nova Server的ID。这里可能会有一个疑问：Heat到底是怎么把一段配置最终配置到服务器上的呢？其实创建一个SoftwareDeployment主要做了两件事：一个是在Heat的数据库中产生相应的记录，一个是会将这些配置信息上传到外部的一个Metadata服务器上，在TripleO里，这个Metadata服务器是Swift，而在将要配置的服务器上，即server里，会安装相应的Heat Agent，这个Agent会去Metadata服务器上拉取本节点的配置信息，然后进行配置，Heat Agent是在做OverCloud镜像的时候就安装进去了，这些Agent都被定义在<a target="_blank" rel="noopener" href="https://github.com/openstack/heat-agents">heat-agents</a>这个项目中。</p>
+<p>在创建了一个SoftwareDeployment时，这个resource会进入<code>IN_PROGRESS</code>状态，当服务器端配置完成后，Agent会回调Heat的接口，告知配置的结果，以确定成功或者失败。</p>
+<h4 id="OS-Heat-StructuredDeployment"><a href="#OS-Heat-StructuredDeployment" class="headerlink" title="OS::Heat::StructuredDeployment"></a>OS::Heat::StructuredDeployment</h4><p>StructuredDeployment跟SoftwareDeployment的作用类似，只不过<code>config</code>参数引用的需要是StructuredConfig定义的资源。</p>
+<h4 id="OS-Heat-SoftwareDeploymentGroup"><a href="#OS-Heat-SoftwareDeploymentGroup" class="headerlink" title="OS::Heat::SoftwareDeploymentGroup"></a>OS::Heat::SoftwareDeploymentGroup</h4><p>SoftwareDeploymentGroup跟StructuredDeployment类似，但是它可以指定一组服务器进行配置，即指定了<code>servers</code>参数，来指定多个服务器。</p>
+<h4 id="OS-Heat-StructuredDeploymentGroup"><a href="#OS-Heat-StructuredDeploymentGroup" class="headerlink" title="OS::Heat::StructuredDeploymentGroup"></a>OS::Heat::StructuredDeploymentGroup</h4><p>StructuredDeploymentGroup跟SoftwareDeploymentGroup类似，除了可以指定一组服务器进行配置外，<code>config</code>参数引用的需要是StructuredConfig定义的资源。</p>
+<p>以上介绍的这些资源都是在TripleO中使用到的，这里仅仅是简单介绍了下作用，更多的参数以及使用方法请参考Heat的<a target="_blank" rel="noopener" href="https://docs.openstack.org/developer/heat/template_guide/index.html">模板文档</a>。</p>
+
+          </section>
+        </article>
+        
+
+       
+        <div class="pager">
+          
+            <a class="post-prev pager-item" href="/2017/09/11/python/unittest.html" >
+              <strong class="article-nav-caption">Newer</strong>
+              <p class="post-nav-title">Python单元测试—深入理解unittest</p>
+            </a>
+          
+          
+            <a class="post-next pager-item" href="/2017/04/23/openstack/tripleo/overcloud.html">
+              <strong class="article-nav-caption">Older</strong>
+              <p class="post-nav-title">TripleO 概览</p>
+            </a>
+          
+        </div>
+        
+
+         <!-- comments -->
+        <div class="comment-section">
+  
+    
+    
+<link rel="stylesheet" href="/css/gitalk.css">
+
+    
+<script src="/lib/gitalk.min.js"></script>
+
+    <div id="gitalk-container"></div>
+    <script>
+      const gitalk = new Gitalk({
+        clientID: '54c13c09b0079cbb2386',
+        clientSecret: 'a4b61935040bb6a0ef0764889b6283a21fba00dd',
+        repo: 'hackerain.github.io',
+        owner: 'hackerain',
+        admin: ['hackerain'],
+        id: location.pathname.substr(11,30)+":"+location.pathname.split("").reduce(function(a,b){a=((a<<5)-a)+b.charCodeAt(0);return a&a},0),
+        distractionFreeMode: true
+      })
+      gitalk.render('gitalk-container')
+    </script>
+  
+
+
+</div>
+
+
+    </div>
+    
+</div>
+
+                </div>
+            </div>
+        </div>
+        <footer class="footer">
+    <p>由<a href="http://hexo.io/" target="_blank">Hexo</a>强力驱动，搭载<a target="_blank" rel="noopener" href="https://github.com/wayou/hexo-theme-gstyle">gstyle</a>主题</p>
+    <p>
+        &copy; 2020 hackerain
+    </p>
+</footer>
+
+<script src="/lib/jquery.js"></script>
+
+
+<script src="/lib/waves.js"></script>
+
+
+<script src="/lib/jquery-ui.js"></script>
+
+
+<script src="/lib/jquery.tocify.js"></script>
+
+
+<script src="/js/main.js"></script>
+
+
+    </body>
+</html>

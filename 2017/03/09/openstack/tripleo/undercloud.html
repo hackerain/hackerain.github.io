@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+          <head>
+        <meta charset="utf-8">
+            
+            <title>
+                TripleO UnderCloud 安装原理 | 开心鬼
+            </title>
+            <meta content="width=device-width, initial-scale=1" name="viewport">
+            <meta name="theme-color" content="#4184f3">
+            
+            
+            <link href="/favicon.ico" rel="icon"/>
+            
+
+            
+<link rel="stylesheet" href="/css/highlight.light.css">
+
+            
+<link rel="stylesheet" href="/css/prism-customize.css">
+
+            
+<link rel="stylesheet" href="/css/nav-icon.css">
+
+            
+<link rel="stylesheet" href="/css/waves.min.css">
+
+            
+<link rel="stylesheet" href="/css/jquery.tocify.css">
+
+            
+<link rel="stylesheet" href="/css/main.css">
+
+            
+<link rel="stylesheet" href="/css/nav-indicator.css">
+
+            
+  
+  <!-- 百度统计 -->
+  <script>
+  var _hmt = _hmt || [];
+  (function() {
+    var hm = document.createElement("script");
+    hm.src = "//hm.baidu.com/hm.js?52c2063ad58df7e49e95e3ed44358e2c";
+    var s = document.getElementsByTagName("script")[0];
+    s.parentNode.insertBefore(hm, s);
+  })();
+  </script>
+  
+
+  
+            </meta>
+        </meta>
+    <meta name="generator" content="Hexo 5.1.1"></head>
+
+    <body>
+        <header>
+            <!-- cover image or sth. -->
+        </header>
+        <div id="main" class="m-scene">
+            
+<div class="nav-wrapper">
+
+    <div class="container">
+        <nav>
+            <div class="logo wave">
+                <a href="/" id="logo">
+                    开心鬼
+                </a>
+            </div>
+            <div class="nav-toggle-icon" >
+                <div class="material-hamburger">
+                    <span>
+                    </span>
+                    <span>
+                    </span>
+                    <span>
+                    </span>
+                </div>
+            </div>
+            <div class="menu-wrapper">
+                <div class="nav-indicator">
+                </div>
+                <ul class="menus">
+                    
+                     
+                        <li>
+                            <a class="wave " href="/">
+                                Home
+                            </a>
+                        </li>
+                     
+                        <li>
+                            <a class="wave " href="/archives">
+                                Archive
+                            </a>
+                        </li>
+                     
+                        <li>
+                            <a class="wave " href="/about">
+                                About
+                            </a>
+                        </li>
+                     
+                        <li>
+                            <a class="wave no-smoothstate" href="/atom.xml">
+                                RSS
+                            </a>
+                        </li>
+                     
+                    
+                   
+                </ul>
+            </div>
+        </nav>
+    </div>
+</div>
+            <div class="container content">
+                <div class="scene_element scene_element--fadein">
+                    <div class="row">
+    <div class="main">
+        <article>
+          
+          <header class="post-header">
+          
+          </header>
+          <h1 class="post-title">TripleO UnderCloud 安装原理</h1>
+
+          <section class="post-info">
+            <span class="post-date">2017/03/09</span>
+            
+            
+          </section>
+
+          <section class="post-content">
+            <p>本节介绍UnderCloud的安装原理，UnderCloud主要是依赖于OpenStack本身的功能来安装OverCloud，OverCloud就是最终要交付的OpenStack环境。UnderCloud是一个单机版的OpenStack环境，主要安装的组件有nova, glance, keystone, neutron, heat, ironic, swift，还可以选择性的安装telemetry, mistral, zaqar等组件。</p>
+<p>安装undercloud只使用一个简单的命令: <code>openstack undercloud install</code>就可以了，这个命令是python-tripleoclient提供的，它是python-openstackclient的一个插件，除了有安装undercloud的命令外，还有安装overcloud的命令，而在安装undercloud时，python-tripleoclient只是简单的调用了instack-undercloud中提供的命令: <code>instack-install-undercloud</code>，instack-undercloud就是专门用来安装和升级undercloud的，在instack-undercloud中，又使用了 instack + os-refresh-config + puppet来部署undercloud，所以这些组件的依赖关系如下：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">.</span><br><span class="line">└── python-openstackclient</span><br><span class="line">    └── python-tripleoclient</span><br><span class="line">        └── instack-undercloud</span><br><span class="line">            ├── instack</span><br><span class="line">            └── os-refresh-config</span><br><span class="line">                ├── os-apply-config</span><br><span class="line">                ├── puppet</span><br><span class="line">                └── os-cloud-config</span><br></pre></td></tr></table></figure>
+
+<p>instack和os-refresh-config的具体细节请参见本章“依赖组件”一节中的内容，instack里主要应用了dib elements来定制当前系统，在instack-undercloud中，指定了多个elements来执行，主要是为后面安装undercloud做些准备工作，比如生成os-refresh-config需要的脚本，生成hieradata等等；而os-refresh-config则在安装undercloud过程中起到了整体的<strong>编排</strong>作用，它会去调用os-apply-config配置当前系统，跑puppet安装OpenStack组件，然后建立安装overcloud使用的网络等等；puppet是在os-refresh-config过程中被执行的，使用puppet apply在本地执行puppet代码，安装undercloud用到的各个OpenStack组件；在安装完成OpenStack各个组件后，os-refresh-config会去调用os-cloud-config提供的命令setup-neutron去建立管理网络。</p>
+<p>下面来详细介绍下instack-undercloud安装undercloud中的主要步骤：</p>
+<h3 id="1-生成环境变量"><a href="#1-生成环境变量" class="headerlink" title="1. 生成环境变量"></a>1. 生成环境变量</h3><p>在安装undercloud之前，先要在stack用户的home目录下创建一个undercloud.conf配置文件，在该文件中定义了安装undercloud需要用的配置项，因为在安装时，本质上是在跑各种脚本，在脚本中会用到各种变量，这些变量的值需要从环境变量中获取，因此instack-install-undercloud命令先要将读取undercloud.conf中的配置项，然后将其转化为环境变量，方便后面的脚本使用，当然，脚本使用的环境变量不仅仅是在这个阶段生成的，在各个elements中，也定义了各种环境变量，在执行elemenets之前，会先被导出来。在安装undercloud时，生成的环境变量见附录1.</p>
+<h3 id="2-生成Metadata配置文件"><a href="#2-生成Metadata配置文件" class="headerlink" title="2. 生成Metadata配置文件"></a>2. 生成Metadata配置文件</h3><p>在后面的步骤中会执行os-apply-config，os-apply-config需要用到一个json格式的metadata配置文件，用来渲染模板，生成系统中的配置，这个json格式的metadata配置文件就是在这个阶段生成的，里面包括了hieradata的配置，neutron的配置，os-net-config的配置等等，该文件的保存路径为：<code>/var/lib/heat-cfntools/cfn-init-data</code>，可能是由于历史原因，是以cfn命名的，这也是os-apply-config最低优先级去找的配置文件，该文件的示例请参见附录2.</p>
+<h3 id="3-执行instack"><a href="#3-执行instack" class="headerlink" title="3. 执行instack"></a>3. 执行instack</h3><p>在instack-undercloud中指定了一些elements去执行，这些elements分别来自不同的项目，有tripleo-image-elements中定义的，有instack-undercloud中定义的，还有diskimage-builder中定义的，这些信息都被配置在一个json格式的配置文件中，执行的命令如下：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">sudo -E instack \</span><br><span class="line">    -p &#x2F;usr&#x2F;share&#x2F;tripleo-puppet-elements:&#x2F;usr&#x2F;share&#x2F;instack-undercloud:&#x2F;usr&#x2F;share&#x2F;tripleo-image-elements:&#x2F;usr&#x2F;share&#x2F;diskimage-builder&#x2F;elements \</span><br><span class="line">    -j &#x2F;usr&#x2F;share&#x2F;instack-undercloud&#x2F;json-files&#x2F;centos-7-undercloud-packages.json</span><br></pre></td></tr></table></figure>
+
+<p>centos-7-undercloud-packages.json文件的内容如下：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br></pre></td><td class="code"><pre><span class="line">[</span><br><span class="line">  &#123;</span><br><span class="line">    &quot;name&quot;: &quot;Installation&quot;,</span><br><span class="line">    &quot;element&quot;: [</span><br><span class="line">      &quot;install-types&quot;,</span><br><span class="line">      &quot;undercloud-install&quot;,</span><br><span class="line">      &quot;enable-packages-install&quot;,</span><br><span class="line">      &quot;element-manifest&quot;,</span><br><span class="line">      &quot;puppet-stack-config&quot;</span><br><span class="line">    ],</span><br><span class="line">    &quot;hook&quot;: [</span><br><span class="line">      &quot;extra-data&quot;,</span><br><span class="line">      &quot;pre-install&quot;,</span><br><span class="line">      &quot;install&quot;,</span><br><span class="line">      &quot;post-install&quot;</span><br><span class="line">    ],</span><br><span class="line">    &quot;exclude-element&quot;: [</span><br><span class="line">      &quot;pip-and-virtualenv&quot;,</span><br><span class="line">      &quot;os-collect-config&quot;,</span><br><span class="line">      &quot;svc-map&quot;,</span><br><span class="line">      &quot;pip-manifest&quot;,</span><br><span class="line">      &quot;package-installs&quot;,</span><br><span class="line">      &quot;pkg-map&quot;,</span><br><span class="line">      &quot;puppet&quot;,</span><br><span class="line">      &quot;cache-url&quot;,</span><br><span class="line">      &quot;dib-python&quot;,</span><br><span class="line">      &quot;os-svc-install&quot;,</span><br><span class="line">      &quot;install-bin&quot;</span><br><span class="line">    ],</span><br><span class="line">    &quot;blacklist&quot;: [</span><br><span class="line">      &quot;99-refresh-completed&quot;</span><br><span class="line">    ]</span><br><span class="line">  &#125;</span><br><span class="line">]</span><br></pre></td></tr></table></figure>
+
+<p>即指定了instack-types, undercloud-install, enable-packages-install, element-manifest, puppet-stack-config这几个elements，因为每一个elements都有依赖，所以最终处理完依赖，要执行的elements全量为：</p>
+<ul>
+<li>install-types</li>
+<li>element-manifest</li>
+<li>manifests</li>
+<li>source-repositories</li>
+<li>puppet-modules</li>
+<li>hiera</li>
+<li>enable-packages-install</li>
+<li>os-apply-config</li>
+<li>os-refresh-config</li>
+<li>undercloud-install</li>
+<li>puppet-stack-config</li>
+</ul>
+<p>每一个elements都包含了一些hook，instack的配置文件指定了只执行extra-data, pre-install, install, post-install这4个hook，这些hook以及hook中的脚本请参见附录3，合并之后的hook请参见附录4。</p>
+<p>instack通过执行这些elements，大概做了几下几件事情：</p>
+<ol>
+<li>从package安装各个项目的puppet代码，因为还支持从源码安装puppet代码</li>
+<li>生成puppet的入口代码：puppet-stack-config.pp，以及生成puppet hieradata：puppet-stack-config.yaml</li>
+<li>生成os-apply-config使用的模板文件</li>
+<li>生成os-refresh-config使用的脚本</li>
+</ol>
+<h3 id="4-执行os-refresh-config"><a href="#4-执行os-refresh-config" class="headerlink" title="4. 执行os-refresh-config"></a>4. 执行os-refresh-config</h3><p>在上一步中已经生成了os-refresh-config所需要使用的脚本，是通过os-refresh-config这个element生成的，这些脚本分散在每一个element中，每一个element除了包含instack执行过程中的hook外，还包含了os-refresh-config和os-apply-config需要用到的hook，通过os-refresh-config和os-apply-config这两个elements将这些hook合并到一起，如下：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br></pre></td><td class="code"><pre><span class="line">▾ os-apply-config&#x2F;</span><br><span class="line">  ▾ etc&#x2F;</span><br><span class="line">    ▾ os-net-config&#x2F;</span><br><span class="line">        config.json</span><br><span class="line">    ▾ puppet&#x2F;</span><br><span class="line">      ▾ hieradata&#x2F;</span><br><span class="line">          CentOS.yaml</span><br><span class="line">          RedHat.yaml</span><br><span class="line">        hiera.yaml</span><br><span class="line">  ▾ root&#x2F;</span><br><span class="line">      stackrc</span><br><span class="line">      stackrc.oac</span><br><span class="line">      tripleo-undercloud-passwords</span><br><span class="line">      tripleo-undercloud-passwords.oac</span><br><span class="line">  ▾ var&#x2F;</span><br><span class="line">    ▾ opt&#x2F;</span><br><span class="line">      ▾ undercloud-stack&#x2F;</span><br><span class="line">          masquerade</span><br><span class="line">▾ os-refresh-config&#x2F;</span><br><span class="line">  ▾ configure.d&#x2F;</span><br><span class="line">      20-os-apply-config*</span><br><span class="line">      30-reload-keepalived*</span><br><span class="line">      40-hiera-datafiles*</span><br><span class="line">      40-truncate-nova-config*</span><br><span class="line">      50-puppet-stack-config*</span><br><span class="line">  ▾ post-configure.d&#x2F;</span><br><span class="line">      10-iptables*</span><br><span class="line">      80-seedstack-masquerade*</span><br><span class="line">      98-undercloud-setup*</span><br><span class="line">      99-refresh-completed*</span><br></pre></td></tr></table></figure>
+
+<p>在生成的os-refresh-config中，只包含了configure和post-configure两个hook，因此先执行configure.d中的脚本，然后执行post-configure.d中的脚本，其中比较重要的是如下几个脚本：</p>
+<ul>
+<li><p>在20-os-apply-config中执行了os-apply-config命令，将os-apply-config中的使用json metadata文件渲染模板，然后将生成的配置文件放置到对应的位置上去</p>
+</li>
+<li><p>50-puppet-stack-config就是执行puppet代码了，是通过puppet apply的方式执行：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">puppet apply --detailed-exitcodes &#x2F;etc&#x2F;puppet&#x2F;manifests&#x2F;puppet-stack-config.pp</span><br></pre></td></tr></table></figure>
+
+<p>这一步就是安装undercloud需要使用到的各个OpenStack组件了。</p>
+</li>
+<li><p>98-undercloud-setup，在安装好OpenStack组件之后，调用os-cloud-config提供的命令setup-neutron去创建安装OverCloud需要使用的管理网络。此外，如果enable了mistral功能，还会去创建workbook。</p>
+</li>
+</ul>
+<p>除此之外，就是配置一些iptables规则，比如允许ip forwarding，可以让overcloud节点能访问外网，配置169.254.169.254的NAT规则，打通虚拟机访问metadata的通道等等，最终建立出来的undercloud网络拓扑如下：</p>
+<p><img src="/assets/tripleo-undercloud-topology2.png"></p>
+<p>经过上面这几步，就完成了undercloud的安装，整体来看undercloud采用了脚本+puppet的方式进行安装，安装过程非常复杂，定制化主要也是写elements，需要非常了解其中的原理才能定制undercloud，在现在的master分支，也就是Pike版本的TripleO中，采用了新的方法去安装undercloud，即也采用heat去部署，见<a target="_blank" rel="noopener" href="https://github.com/openstack/python-tripleoclient/commit/5f58088ff52636724d53f5b0590eefb8de55434c">这里</a>，不再依赖instack-undercloud中的各种elements，这样undercloud和overcloud的安装方法就统一了。</p>
+<h3 id="附录1"><a href="#附录1" class="headerlink" title="附录1"></a>附录1</h3><p>安装undercloud时，生成的环境变量示例：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br><span class="line">101</span><br><span class="line">102</span><br><span class="line">103</span><br><span class="line">104</span><br><span class="line">105</span><br><span class="line">106</span><br><span class="line">107</span><br><span class="line">108</span><br><span class="line">109</span><br><span class="line">110</span><br><span class="line">111</span><br><span class="line">112</span><br><span class="line">113</span><br><span class="line">114</span><br><span class="line">115</span><br><span class="line">116</span><br><span class="line">117</span><br><span class="line">118</span><br><span class="line">119</span><br><span class="line">120</span><br><span class="line">121</span><br><span class="line">122</span><br><span class="line">123</span><br><span class="line">124</span><br><span class="line">125</span><br><span class="line">126</span><br><span class="line">127</span><br><span class="line">128</span><br><span class="line">129</span><br><span class="line">130</span><br><span class="line">131</span><br><span class="line">132</span><br><span class="line">133</span><br><span class="line">134</span><br><span class="line">135</span><br><span class="line">136</span><br><span class="line">137</span><br><span class="line">138</span><br><span class="line">139</span><br><span class="line">140</span><br><span class="line">141</span><br><span class="line">142</span><br><span class="line">143</span><br><span class="line">144</span><br><span class="line">145</span><br><span class="line">146</span><br><span class="line">147</span><br><span class="line">148</span><br><span class="line">149</span><br><span class="line">150</span><br><span class="line">151</span><br><span class="line">152</span><br><span class="line">153</span><br></pre></td><td class="code"><pre><span class="line">&#123;  </span><br><span class="line">   &#39;UNDERCLOUD_HORIZON_SECRET_KEY&#39;:&#39;51a4c2aee7cfa93efee549c2a1bd48e9a3501494&#39;,</span><br><span class="line">   &#39;TARGET_ROOT&#39;:&#39;&#x2F;&#39;,</span><br><span class="line">   &#39;UNDERCLOUD_IRONIC_PASSWORD&#39;:&#39;7558a0701f802a84faa625e0bc563170a97aa6cb&#39;,</span><br><span class="line">   &#39;INSPECTION_COLLECTORS&#39;:&#39;default,extra-hardware,logs&#39;,</span><br><span class="line">   &#39;ENABLE_MISTRAL&#39;:&#39;True&#39;,</span><br><span class="line">   &#39;SHELL&#39;:&#39;&#x2F;bin&#x2F;bash&#39;,</span><br><span class="line">   &#39;UNDERCLOUD_ENDPOINT_SWIFT_ADMIN&#39;:&#39;http:&#x2F;&#x2F;192.168.24.1:8080&#39;,</span><br><span class="line">   &#39;UNDERCLOUD_ENDPOINT_GLANCE_ADMIN&#39;:&#39;http:&#x2F;&#x2F;192.168.24.1:9292&#39;,</span><br><span class="line">   &#39;UNDERCLOUD_CEILOMETER_SNMPD_PASSWORD&#39;:&#39;7e698c4fdb9a0eccc0a079c456c7a32a816120df&#39;,</span><br><span class="line">   &#39;UNDERCLOUD_ENDPOINT_NOVA_ADMIN&#39;:&#39;http:&#x2F;&#x2F;192.168.24.1:8774&#x2F;v2.1&#39;,</span><br><span class="line">   &#39;NODE_DIST&#39;:&#39;centos7&#39;,</span><br><span class="line">   &#39;HISTSIZE&#39;:&#39;1000&#39;,</span><br><span class="line">   &#39;UNDERCLOUD_DEBUG&#39;:&#39;True&#39;,</span><br><span class="line">   &#39;UNDERCLOUD_DB_PASSWORD&#39;:&#39;f2f25d1df2f05b810d7819bcfea45803185df833&#39;,</span><br><span class="line">   &#39;INSPECTION_RUNBENCH&#39;:&#39;False&#39;,</span><br><span class="line">   &#39;SERVICE_PRINCIPAL&#39;:&#39;&#39;,</span><br><span class="line">   &#39;UNDERCLOUD_SWIFT_HASH_SUFFIX&#39;:&#39;b3c4eef1928b9b84427c06f2a1acc5d7f1b2f198&#39;,</span><br><span class="line">   &#39;UNDERCLOUD_ENDPOINT_IRONIC_INTERNAL&#39;:&#39;http:&#x2F;&#x2F;192.168.24.1:6385&#39;,</span><br><span class="line">   &#39;XDG_RUNTIME_DIR&#39;:&#39;&#x2F;run&#x2F;user&#x2F;1000&#39;,</span><br><span class="line">   &#39;TRIPLEO_INSTALL_USER&#39;:&#39;stack&#39;,</span><br><span class="line">   &#39;UNDERCLOUD_ENDPOINT_KEYSTONE_PUBLIC&#39;:&#39;https:&#x2F;&#x2F;192.168.24.2:13000&#39;,</span><br><span class="line">   &#39;INSPECTION_KERNEL_ARGS&#39;:&#39;ipa-debug&#x3D;1 ipa-inspection-dhcp-all-interfaces&#x3D;1 ipa-collect-lldp&#x3D;1&#39;,</span><br><span class="line">   &#39;STORE_EVENTS&#39;:&#39;False&#39;,</span><br><span class="line">   &#39;XDG_SESSION_ID&#39;:&#39;198&#39;,</span><br><span class="line">   &#39;UNDERCLOUD_ADMIN_VIP&#39;:&#39;192.168.24.3&#39;,</span><br><span class="line">   &#39;UNDERCLOUD_ENDPOINT_CEILOMETER_ADMIN&#39;:&#39;http:&#x2F;&#x2F;192.168.24.1:8777&#39;,</span><br><span class="line">   &#39;JSONFILE&#39;:&#39;&#x2F;usr&#x2F;share&#x2F;instack-undercloud&#x2F;json-files&#x2F;centos-7-undercloud-packages.json&#39;,</span><br><span class="line">   &#39;HOSTNAME&#39;:&#39;undercloud.localdomain&#39;,</span><br><span class="line">   &#39;SELINUX_LEVEL_REQUESTED&#39;:&#39;&#39;,</span><br><span class="line">   &#39;UNDERCLOUD_ENDPOINT_AODH_PUBLIC&#39;:&#39;https:&#x2F;&#x2F;192.168.24.2:13042&#39;,</span><br><span class="line">   &#39;UNDERCLOUD_ENDPOINT_AODH_INTERNAL&#39;:&#39;http:&#x2F;&#x2F;192.168.24.1:8042&#39;,</span><br><span class="line">   &#39;UNDERCLOUD_ENDPOINT_MISTRAL_PUBLIC&#39;:&#39;https:&#x2F;&#x2F;192.168.24.2:13989&#x2F;v2&#39;,</span><br><span class="line">   &#39;DIB_INIT_SYSTEM&#39;:&#39;systemd&#39;,</span><br><span class="line">   &#39;INSPECTION_INTERFACE&#39;:&#39;br-ctlplane&#39;,</span><br><span class="line">   &#39;UNDERCLOUD_ENDPOINT_KEYSTONE_INTERNAL&#39;:&#39;http:&#x2F;&#x2F;192.168.24.1:5000&#39;,</span><br><span class="line">   &#39;MAIL&#39;:&#39;&#x2F;var&#x2F;spool&#x2F;mail&#x2F;stack&#39;,</span><br><span class="line">   &#39;TRIPLEO_UNDERCLOUD_PASSWORD_FILE&#39;:&#39;&#x2F;home&#x2F;stack&#x2F;undercloud-passwords.conf&#39;,</span><br><span class="line">   &#39;SCHEDULER_MAX_ATTEMPTS&#39;:&#39;30&#39;,</span><br><span class="line">   &#39;UNDERCLOUD_ENDPOINT_HEAT_INTERNAL&#39;:&#39;http:&#x2F;&#x2F;192.168.24.1:8004&#x2F;v1&#x2F;%(tenant_id)s&#39;,</span><br><span class="line">   &#39;UNDERCLOUD_ENDPOINT_AODH_ADMIN&#39;:&#39;http:&#x2F;&#x2F;192.168.24.1:8042&#39;,</span><br><span class="line">   &#39;UNDERCLOUD_HEAT_PASSWORD&#39;:&#39;561b715ce0f8ffe0c1482eeaed3df09cd2590a91&#39;,</span><br><span class="line">   &#39;LOCAL_INTERFACE&#39;:&#39;eth1&#39;,</span><br><span class="line">   &#39;LESSOPEN&#39;:&#39;||&#x2F;usr&#x2F;bin&#x2F;lesspipe.sh %s&#39;,</span><br><span class="line">   &#39;MASQUERADE_NETWORK&#39;:&#39;192.168.24.0&#x2F;24&#39;,</span><br><span class="line">   &#39;USER&#39;:&#39;root&#39;,</span><br><span class="line">   &#39;UNDERCLOUD_ENDPOINT_HEAT_PUBLIC&#39;:&#39;https:&#x2F;&#x2F;192.168.24.2:13004&#x2F;v1&#x2F;%(tenant_id)s&#39;,</span><br><span class="line">   &#39;UNDERCLOUD_HEAT_STACK_DOMAIN_ADMIN_PASSWORD&#39;:&#39;38e14254ddf98458ba09dcf600d936d3631a28b7&#39;,</span><br><span class="line">   &#39;UNDERCLOUD_ENDPOINT_NEUTRON_ADMIN&#39;:&#39;http:&#x2F;&#x2F;192.168.24.1:9696&#39;,</span><br><span class="line">   &#39;SHLVL&#39;:&#39;3&#39;,</span><br><span class="line">   &#39;UNDERCLOUD_ENDPOINT_ZAQAR_ADMIN&#39;:&#39;http:&#x2F;&#x2F;192.168.24.1:8888&#39;,</span><br><span class="line">   &#39;UNDERCLOUD_ENDPOINT_CEILOMETER_PUBLIC&#39;:&#39;https:&#x2F;&#x2F;192.168.24.2:13777&#39;,</span><br><span class="line">   &#39;UNDERCLOUD_ENDPOINT_KEYSTONE_ADMIN&#39;:&#39;http:&#x2F;&#x2F;192.168.24.1:35357&#39;,</span><br><span class="line">   &#39;SUDO_USER&#39;:&#39;stack&#39;,</span><br><span class="line">   &#39;UNDERCLOUD_ENDPOINT_IRONIC_INSPECTOR_INTERNAL&#39;:&#39;http:&#x2F;&#x2F;192.168.24.1:5050&#39;,</span><br><span class="line">   &#39;ELEMENTS_PATH&#39;:&#39;&#x2F;usr&#x2F;share&#x2F;tripleo-puppet-elements:&#x2F;usr&#x2F;share&#x2F;instack-undercloud:&#x2F;usr&#x2F;share&#x2F;tripleo-image-elements:&#x2F;usr&#x2F;share&#x2F;diskimage-builder&#x2F;elements&#39;,</span><br><span class="line">   &#39;ENABLE_VALIDATIONS&#39;:&#39;True&#39;,</span><br><span class="line">   &#39;UNDERCLOUD_ENDPOINT_ZAQAR_WEBSOCKET_INTERNAL&#39;:&#39;ws:&#x2F;&#x2F;192.168.24.1:9000&#39;,</span><br><span class="line">   &#39;UNDERCLOUD_ADMIN_PASSWORD&#39;:&#39;78ad5a42318e7d41e5a2e0f1f9600375ba985b16&#39;,</span><br><span class="line">   &#39;LOCAL_MTU&#39;:&#39;1500&#39;,</span><br><span class="line">   &#39;TMP_MOUNT_PATH&#39;:&#39;&#x2F;tmp&#x2F;instack.gbtlM6&#x2F;mnt&#39;,</span><br><span class="line">   &#39;UNDERCLOUD_ENDPOINT_MISTRAL_INTERNAL&#39;:&#39;http:&#x2F;&#x2F;192.168.24.1:8989&#x2F;v2&#39;,</span><br><span class="line">   &#39;SSH_CONNECTION&#39;:&#39;192.168.23.1 37621 192.168.23.47 22&#39;,</span><br><span class="line">   &#39;IMAGE_PATH&#39;:&#39;.&#39;,</span><br><span class="line">   &#39;GUESTFISH_OUTPUT&#39;:&#39;\\e[0m&#39;,</span><br><span class="line">   &#39;UNDERCLOUD_ENDPOINT_SWIFT_INTERNAL&#39;:&#39;http:&#x2F;&#x2F;192.168.24.1:8080&#x2F;v1&#x2F;AUTH_%(tenant_id)s&#39;,</span><br><span class="line">   &#39;GENERATE_SERVICE_CERTIFICATE&#39;:&#39;True&#39;,</span><br><span class="line">   &#39;UNDERCLOUD_CEILOMETER_METERING_SECRET&#39;:&#39;989d08bc16f00298e7b0cf9fd396d5477a46c959&#39;,</span><br><span class="line">   &#39;DIB_IMAGE_CACHE&#39;:&#39;&#x2F;root&#x2F;.cache&#x2F;image-create&#39;,</span><br><span class="line">   &#39;DIB_DEFAULT_INSTALLTYPE&#39;:&#39;package&#39;,</span><br><span class="line">   &#39;IPXE_ENABLED&#39;:&#39;True&#39;,</span><br><span class="line">   &#39;UNDERCLOUD_ENDPOINT_IRONIC_INSPECTOR_PUBLIC&#39;:&#39;https:&#x2F;&#x2F;192.168.24.2:13050&#39;,</span><br><span class="line">   &#39;SELINUX_USE_CURRENT_RANGE&#39;:&#39;&#39;,</span><br><span class="line">   &#39;CLEAN_NODES&#39;:&#39;False&#39;,</span><br><span class="line">   &#39;UNDERCLOUD_ENDPOINT_NOVA_PUBLIC&#39;:&#39;https:&#x2F;&#x2F;192.168.24.2:13774&#x2F;v2.1&#39;,</span><br><span class="line">   &#39;HOME&#39;:&#39;&#x2F;root&#39;,</span><br><span class="line">   &#39;UNDERCLOUD_ENDPOINT_ZAQAR_INTERNAL&#39;:&#39;http:&#x2F;&#x2F;192.168.24.1:8888&#39;,</span><br><span class="line">   &#39;UNDERCLOUD_ENDPOINT_IRONIC_INSPECTOR_ADMIN&#39;:&#39;http:&#x2F;&#x2F;192.168.24.1:5050&#39;,</span><br><span class="line">   &#39;GUESTFISH_INIT&#39;:&#39;\\e[1;34m&#39;,</span><br><span class="line">   &#39;LANG&#39;:&#39;en_US.utf8&#39;,</span><br><span class="line">   &#39;UNDERCLOUD_SERVICE_CERTIFICATE&#39;:&#39;&#x2F;etc&#x2F;pki&#x2F;tls&#x2F;certs&#x2F;undercloud-192.168.24.2.pem&#39;,</span><br><span class="line">   &#39;ENABLE_TELEMETRY&#39;:&#39;True&#39;,</span><br><span class="line">   &#39;DHCP_START&#39;:&#39;192.168.24.5&#39;,</span><br><span class="line">   &#39;IMAGE_NAME&#39;:&#39;instack&#39;,</span><br><span class="line">   &#39;DIB_OFFLINE&#39;:&#39;&#39;,</span><br><span class="line">   &#39;ENABLE_UI&#39;:&#39;True&#39;,</span><br><span class="line">   &#39;_&#39;:&#39;&#x2F;usr&#x2F;bin&#x2F;python&#39;,</span><br><span class="line">   &#39;NET_CONFIG_OVERRIDE&#39;:&#39;&#39;,</span><br><span class="line">   &#39;PUBLIC_INTERFACE_IP&#39;:&#39;192.168.24.1&#x2F;24&#39;,</span><br><span class="line">   &#39;UNDERCLOUD_ENDPOINT_IRONIC_ADMIN&#39;:&#39;http:&#x2F;&#x2F;192.168.24.1:6385&#39;,</span><br><span class="line">   &#39;USERNAME&#39;:&#39;root&#39;,</span><br><span class="line">   &#39;UNDERCLOUD_ENDPOINT_HEAT_ADMIN&#39;:&#39;http:&#x2F;&#x2F;192.168.24.1:8004&#x2F;v1&#x2F;%(tenant_id)s&#39;,</span><br><span class="line">   &#39;LOCAL_IP&#39;:&#39;192.168.24.1&#39;,</span><br><span class="line">   &#39;SELINUX_ROLE_REQUESTED&#39;:&#39;&#39;,</span><br><span class="line">   &#39;UNDERCLOUD_ENDPOINT_GLANCE_INTERNAL&#39;:&#39;http:&#x2F;&#x2F;192.168.24.1:9292&#39;,</span><br><span class="line">   &#39;SUDO_GID&#39;:&#39;1000&#39;,</span><br><span class="line">   &#39;UNDERCLOUD_ENDPOINT_IRONIC_PUBLIC&#39;:&#39;https:&#x2F;&#x2F;192.168.24.2:13385&#39;,</span><br><span class="line">   &#39;_LIB&#39;:&#39;&#x2F;usr&#x2F;share&#x2F;diskimage-builder&#x2F;lib&#39;,</span><br><span class="line">   &#39;SSH_TTY&#39;:&#39;&#x2F;dev&#x2F;pts&#x2F;1&#39;,</span><br><span class="line">   &#39;DHCP_END&#39;:&#39;192.168.24.30&#39;,</span><br><span class="line">   &#39;UNDERCLOUD_ENDPOINT_NEUTRON_INTERNAL&#39;:&#39;http:&#x2F;&#x2F;192.168.24.1:9696&#39;,</span><br><span class="line">   &#39;UNDERCLOUD_ENDPOINT_ZAQAR_WEBSOCKET_ADMIN&#39;:&#39;ws:&#x2F;&#x2F;192.168.24.1:9000&#39;,</span><br><span class="line">   &#39;UNDERCLOUD_RABBIT_COOKIE&#39;:&#39;274d7049a7cdd3be29759776b6054907be3cb410&#39;,</span><br><span class="line">   &#39;NETWORK_GATEWAY&#39;:&#39;192.168.24.1&#39;,</span><br><span class="line">   &#39;UNDERCLOUD_ENDPOINT_NOVA_INTERNAL&#39;:&#39;http:&#x2F;&#x2F;192.168.24.1:8774&#x2F;v2.1&#39;,</span><br><span class="line">   &#39;INSPECTION_ENABLE_UEFI&#39;:&#39;True&#39;,</span><br><span class="line">   &#39;TRIPLEO_UNDERCLOUD_CONF_FILE&#39;:&#39;&#x2F;home&#x2F;stack&#x2F;undercloud.conf&#39;,</span><br><span class="line">   &#39;CERTIFICATE_GENERATION_CA&#39;:&#39;local&#39;,</span><br><span class="line">   &#39;HIERADATA_OVERRIDE&#39;:&#39;quickstart-hieradata-overrides.yaml&#39;,</span><br><span class="line">   &#39;UNDERCLOUD_NEUTRON_PASSWORD&#39;:&#39;4bde341a0b0183b0b7d40d71a9f4f7d78b62f163&#39;,</span><br><span class="line">   &#39;ENABLE_ZAQAR&#39;:&#39;True&#39;,</span><br><span class="line">   &#39;SSH_CLIENT&#39;:&#39;192.168.23.1 37621 22&#39;,</span><br><span class="line">   &#39;UNDERCLOUD_ENDPOINT_MISTRAL_ADMIN&#39;:&#39;http:&#x2F;&#x2F;192.168.24.1:8989&#x2F;v2&#39;,</span><br><span class="line">   &#39;LOGNAME&#39;:&#39;root&#39;,</span><br><span class="line">   &#39;UNDERCLOUD_CEILOMETER_PASSWORD&#39;:&#39;457c7fb371fe0228e41484de9b77d7515146c3c1&#39;,</span><br><span class="line">   &#39;PATH&#39;:&#39;&#x2F;sbin:&#x2F;bin:&#x2F;usr&#x2F;sbin:&#x2F;usr&#x2F;bin:&#x2F;usr&#x2F;local&#x2F;bin:&#x2F;tmp&#x2F;tmp0o4uKR&#x2F;bin&#39;,</span><br><span class="line">   &#39;UNDERCLOUD_ENDPOINT_SWIFT_PUBLIC&#39;:&#39;https:&#x2F;&#x2F;192.168.24.2:13808&#x2F;v1&#x2F;AUTH_%(tenant_id)s&#39;,</span><br><span class="line">   &#39;INSPECTION_IPRANGE&#39;:&#39;192.168.24.100,192.168.24.120&#39;,</span><br><span class="line">   &#39;GUESTFISH_RESTORE&#39;:&#39;\\e[0m&#39;,</span><br><span class="line">   &#39;MEMBER_ROLE_EXISTS&#39;:&#39;False&#39;,</span><br><span class="line">   &#39;UNDERCLOUD_ENDPOINT_ZAQAR_PUBLIC&#39;:&#39;https:&#x2F;&#x2F;192.168.24.2:13888&#39;,</span><br><span class="line">   &#39;TERM&#39;:&#39;screen&#39;,</span><br><span class="line">   &#39;ENABLE_TEMPEST&#39;:&#39;True&#39;,</span><br><span class="line">   &#39;ARCH&#39;:&#39;amd64&#39;,</span><br><span class="line">   &#39;IMAGE_ELEMENT&#39;:u&#39;element-manifest enable-packages-install hiera install-types manifests os-apply-config os-refresh-config puppet-modules puppet-stack-config source-repositories undercloud-install&#39;,</span><br><span class="line">   &#39;UNDERCLOUD_ZAQAR_PASSWORD&#39;:&#39;a563879e04e18c7c4cf3f2b4e66637b1d84b9e10&#39;,</span><br><span class="line">   &#39;DIB_ARGS&#39;:&quot;[&#39;&#x2F;bin&#x2F;instack&#39;, &#39;-p&#39;, &#39;&#x2F;usr&#x2F;share&#x2F;tripleo-puppet-elements:&#x2F;usr&#x2F;share&#x2F;instack-undercloud:&#x2F;usr&#x2F;share&#x2F;tripleo-image-elements:&#x2F;usr&#x2F;share&#x2F;diskimage-builder&#x2F;elements&#39;, &#39;-j&#39;, &#39;&#x2F;usr&#x2F;share&#x2F;instack-undercloud&#x2F;json-files&#x2F;centos-7-undercloud-packages.json&#39;]&quot;,</span><br><span class="line">   &#39;UNDERCLOUD_AODH_PASSWORD&#39;:&#39;9b4aacbb5ea53d59946e22152e4296e9e157fb8b&#39;,</span><br><span class="line">   &#39;UNDERCLOUD_ADMIN_TOKEN&#39;:&#39;f4d890602dc406c76cf3c156f3a8c374a2028b8b&#39;,</span><br><span class="line">   &#39;UNDERCLOUD_ENDPOINT_ZAQAR_WEBSOCKET_PUBLIC&#39;:&#39;wss:&#x2F;&#x2F;192.168.24.2:9000&#39;,</span><br><span class="line">   &#39;UNDERCLOUD_CEILOMETER_SNMPD_USER&#39;:&#39;ro_snmp_user&#39;,</span><br><span class="line">   &#39;GUESTFISH_PS1&#39;:&#39;\\[\\e[1;32m\\]&gt;&lt;fs&gt;\\[\\e[0;31m\\] &#39;,</span><br><span class="line">   &#39;UNDERCLOUD_SWIFT_PASSWORD&#39;:&#39;6646c8abbc69900be43ad9aeb2fb9bcde084b83c&#39;,</span><br><span class="line">   &#39;UNDERCLOUD_ENDPOINT_GLANCE_PUBLIC&#39;:&#39;https:&#x2F;&#x2F;192.168.24.2:13292&#39;,</span><br><span class="line">   &#39;SUDO_UID&#39;:&#39;1000&#39;,</span><br><span class="line">   &#39;UNDERCLOUD_ENDPOINT_CEILOMETER_INTERNAL&#39;:&#39;http:&#x2F;&#x2F;192.168.24.1:8777&#39;,</span><br><span class="line">   &#39;TMP_HOOKS_PATH&#39;:&#39;&#x2F;tmp&#x2F;tmp0o4uKR&#39;,</span><br><span class="line">   &#39;UNDERCLOUD_ENDPOINT_NEUTRON_PUBLIC&#39;:&#39;https:&#x2F;&#x2F;192.168.24.2:13696&#39;,</span><br><span class="line">   &#39;UNDERCLOUD_HAPROXY_STATS_PASSWORD&#39;:&#39;cfe22a516eb260a515368b42ecdafd0c31a4eab0&#39;,</span><br><span class="line">   &#39;SUDO_COMMAND&#39;:&#39;&#x2F;bin&#x2F;instack -p &#x2F;usr&#x2F;share&#x2F;tripleo-puppet-elements:&#x2F;usr&#x2F;share&#x2F;instack-undercloud:&#x2F;usr&#x2F;share&#x2F;tripleo-image-elements:&#x2F;usr&#x2F;share&#x2F;diskimage-builder&#x2F;elements -j &#x2F;usr&#x2F;share&#x2F;instack-undercloud&#x2F;json-files&#x2F;centos-7-undercloud-packages.json&#39;,</span><br><span class="line">   &#39;UNDERCLOUD_GLANCE_PASSWORD&#39;:&#39;432b0417d7e43907e9df98fae3b509306932275c&#39;,</span><br><span class="line">   &#39;UNDERCLOUD_RABBIT_PASSWORD&#39;:&#39;3f63076c9b2ec748d7021311acc0a4fcfcbf1b30&#39;,</span><br><span class="line">   &#39;UNDERCLOUD_MISTRAL_PASSWORD&#39;:&#39;a4e093153909d0d57c627e3b3b704c286fee2fa0&#39;,</span><br><span class="line">   &#39;UNDERCLOUD_NOVA_PASSWORD&#39;:&#39;54fca7b5d7905511604f69de11d67d4144bb669f&#39;,</span><br><span class="line">   &#39;NETWORK_CIDR&#39;:&#39;192.168.24.0&#x2F;24&#39;,</span><br><span class="line">   &#39;HISTCONTROL&#39;:&#39;ignoredups&#39;,</span><br><span class="line">   &#39;PWD&#39;:&#39;&#x2F;home&#x2F;stack&#39;,</span><br><span class="line">   &#39;UNDERCLOUD_PUBLIC_VIP&#39;:&#39;192.168.24.2&#39;,</span><br><span class="line">   &#39;INSPECTION_EXTRAS&#39;:&#39;True&#39;,</span><br><span class="line">   &#39;UNDERCLOUD_HEAT_ENCRYPTION_KEY&#39;:&#39;9f0926190c3bd6c45203bb645af27039&#39;,</span><br><span class="line">   &#39;UNDERCLOUD_HOSTNAME&#39;:&#39;None&#39;,</span><br><span class="line">   &#39;UNDERCLOUD_RABBIT_USERNAME&#39;:&#39;44422a8e431da7e68defea8712790cf69bca46b1&#39;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="附录2"><a href="#附录2" class="headerlink" title="附录2"></a>附录2</h3><p>os-apply-config使用的metadata配置文件示例：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br></pre></td><td class="code"><pre><span class="line">&#123;</span><br><span class="line"> &quot;hiera&quot;: &#123;</span><br><span class="line">  &quot;hierarchy&quot;: [</span><br><span class="line">   &quot;quickstart-hieradata-overrides&quot;,</span><br><span class="line">   &quot;\&quot;%&#123;::operatingsystem&#125;\&quot;&quot;,</span><br><span class="line">   &quot;\&quot;%&#123;::osfamily&#125;\&quot;&quot;,</span><br><span class="line">   &quot;puppet-stack-config&quot;</span><br><span class="line">  ]&#125;,</span><br><span class="line">  &quot;local-ip&quot;: &quot;192.168.24.1&quot;,</span><br><span class="line">  &quot;masquerade_networks&quot;: [&quot;192.168.24.0&#x2F;24&quot;],</span><br><span class="line">  &quot;service_certificate&quot;: &quot;&#x2F;etc&#x2F;pki&#x2F;tls&#x2F;certs&#x2F;undercloud-192.168.24.2.pem&quot;,</span><br><span class="line">  &quot;public_vip&quot;: &quot;192.168.24.2&quot;,</span><br><span class="line">  &quot;neutron&quot;: &#123;</span><br><span class="line">    &quot;dhcp_start&quot;: &quot;192.168.24.5&quot;,</span><br><span class="line">    &quot;dhcp_end&quot;: &quot;192.168.24.30&quot;,</span><br><span class="line">    &quot;network_cidr&quot;: &quot;192.168.24.0&#x2F;24&quot;,</span><br><span class="line">    &quot;network_gateway&quot;: &quot;192.168.24.1&quot;</span><br><span class="line">  &#125;,</span><br><span class="line">  &quot;inspection&quot;: &#123;</span><br><span class="line">    &quot;interface&quot;: &quot;&quot;,</span><br><span class="line">    &quot;iprange&quot;: &quot;&quot;,</span><br><span class="line">    &quot;runbench&quot;: &quot;&quot;</span><br><span class="line">  &#125;,</span><br><span class="line">  &quot;os_net_config&quot;: &#123;</span><br><span class="line">  &quot;network_config&quot;: [</span><br><span class="line">   &#123;</span><br><span class="line">    &quot;type&quot;: &quot;ovs_bridge&quot;,</span><br><span class="line">    &quot;name&quot;: &quot;br-ctlplane&quot;,</span><br><span class="line">    &quot;ovs_extra&quot;: [</span><br><span class="line">     &quot;br-set-external-id br-ctlplane bridge-id br-ctlplane&quot;</span><br><span class="line">    ],</span><br><span class="line">    &quot;members&quot;: [</span><br><span class="line">     &#123;</span><br><span class="line">      &quot;type&quot;: &quot;interface&quot;,</span><br><span class="line">      &quot;name&quot;: &quot;eth1&quot;,</span><br><span class="line">      &quot;primary&quot;: &quot;true&quot;,</span><br><span class="line">      &quot;mtu&quot;: 1500</span><br><span class="line">     &#125;</span><br><span class="line">    ],</span><br><span class="line">    &quot;addresses&quot;: [</span><br><span class="line">      &#123;</span><br><span class="line">        &quot;ip_netmask&quot;: &quot;192.168.24.1&#x2F;24&quot;</span><br><span class="line">      &#125;</span><br><span class="line">    ],</span><br><span class="line">    &quot;mtu&quot;: 1500</span><br><span class="line">  &#125;</span><br><span class="line">  ]</span><br><span class="line">  &#125;,</span><br><span class="line">  &quot;keystone&quot;: &#123;</span><br><span class="line">    &quot;host&quot;: &quot;192.168.24.1&quot;</span><br><span class="line">  &#125;,</span><br><span class="line">  &quot;ironic&quot;: &#123;</span><br><span class="line">    &quot;service-password&quot;: &quot;7558a0701f802a84faa625e0bc563170a97aa6cb&quot;</span><br><span class="line">  &#125;,</span><br><span class="line">  &quot;bootstrap_host&quot;: &#123;</span><br><span class="line">    &quot;bootstrap_nodeid&quot;: &quot;undercloud&quot;,</span><br><span class="line">    &quot;nodeid&quot;: &quot;undercloud&quot;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="附录3"><a href="#附录3" class="headerlink" title="附录3"></a>附录3</h3><p>instack-undercloud中使用到的elements以及其中hook和脚本示例：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br></pre></td><td class="code"><pre><span class="line">* install-types(diskimage-builder)</span><br><span class="line">    * extra-data.d</span><br><span class="line">        * 99-enable-install-types</span><br><span class="line">    * The base element enables the chosen install type by symlinking the correct hook scripts under install.d directly</span><br><span class="line">* element-manifest(diskimage-builder)</span><br><span class="line">    * extra-data.d</span><br><span class="line">        * 75-inject-element-manifest</span><br><span class="line">* manifests(diskimage-builder)</span><br><span class="line">    * extra-data.d</span><br><span class="line">        * 20-manifest-dir</span><br><span class="line">    * environment.d</span><br><span class="line">        * 14-manifests</span><br><span class="line">    * cleanup.d</span><br><span class="line">        * 01-copy-manifests-dir</span><br><span class="line">* source-repositories(diskimage-builder)</span><br><span class="line">    * extra-data.d</span><br><span class="line">        * 98-source-repositories</span><br><span class="line"></span><br><span class="line">* puppet-modules(tripleo-puppet-elements)</span><br><span class="line">    * install.d&#x2F;</span><br><span class="line">        * puppet-modules-package-install&#x2F;</span><br><span class="line">            * 75-puppet-modules-package</span><br><span class="line">        * puppet-modules-source-install&#x2F;</span><br><span class="line">            * 75-puppet-modules-source</span><br><span class="line">        * 根据install_type会将对应目录下的脚本link到install.d目录下</span><br><span class="line">    * environment.d&#x2F;</span><br><span class="line">        * 01-puppet-module-pins.sh</span><br><span class="line">        * 02-puppet-modules-install-types.sh</span><br><span class="line">    * source-repository-puppet-modules</span><br><span class="line">* hiera(tripleo-puppet-elements)</span><br><span class="line">    * 10-hiera-disable</span><br><span class="line">    * 40-hiera-datafiles</span><br><span class="line">    * install.d&#x2F;</span><br><span class="line">        * 10-hiera-yaml-symlink</span><br><span class="line">        * 11-hiera-orc-install</span><br><span class="line">    * os-apply-config&#x2F;</span><br><span class="line">        * etc&#x2F;puppet&#x2F;hiera.yaml</span><br><span class="line"></span><br><span class="line">* enable-packages-install(tripleo-image-elements)</span><br><span class="line">    * environment.d&#x2F;</span><br><span class="line">        * 01-export-install-types.bash</span><br><span class="line">* os-apply-config(tripleo-image-elements)</span><br><span class="line">    * environment.d&#x2F;</span><br><span class="line">        * 10-os-apply-config-venv-dir.bash</span><br><span class="line">    * install.d&#x2F;</span><br><span class="line">        * 11-create-template-root</span><br><span class="line">        * 99-install-config-templates</span><br><span class="line">        * os-apply-config-source-install&#x2F;</span><br><span class="line">            * 10-os-apply-config</span><br><span class="line">    * os-refresh-config&#x2F;</span><br><span class="line">        * configure.d&#x2F;</span><br><span class="line">            * 20-os-apply-config</span><br><span class="line">* os-refresh-config(tripleo-image-elements)</span><br><span class="line">    * install.d&#x2F;</span><br><span class="line">        * 99-os-refresh-config-install-scripts</span><br><span class="line">        * os-refresh-config-source-install&#x2F;</span><br><span class="line">            * 10-os-refresh-config</span><br><span class="line">    * os-refresh-config&#x2F;</span><br><span class="line">        * post-configure.d&#x2F;</span><br><span class="line">            * 99-refresh-completed</span><br><span class="line"></span><br><span class="line">* undercloud-install(instack-undercloud)</span><br><span class="line">    * os-apply-config&#x2F;</span><br><span class="line">        * etc&#x2F;</span><br><span class="line">        * root&#x2F;</span><br><span class="line">        * var&#x2F;</span><br><span class="line">    * os-refresh-config&#x2F;</span><br><span class="line">        * configure.d&#x2F;</span><br><span class="line">            * 30-reload-keepalived</span><br><span class="line">        * post-configure.d&#x2F;</span><br><span class="line">            * 80-seedstack-masquerade</span><br><span class="line">            * 98-undercloud-setup</span><br><span class="line">* puppet-stack-config(instack-undercloud)</span><br><span class="line">    * extra-data.d&#x2F;</span><br><span class="line">        * 10-install-git</span><br><span class="line">    * install.d&#x2F;</span><br><span class="line">        * 02-puppet-stack-config</span><br><span class="line">        * 10-puppet-stack-config-puppet-module</span><br><span class="line">    * os-apply-config&#x2F;</span><br><span class="line">        * etc&#x2F;</span><br><span class="line">    * os-refresh-config&#x2F;</span><br><span class="line">        * configure.d&#x2F;</span><br><span class="line">            * 50-puppet-stack-config</span><br><span class="line">        * post-configure.d&#x2F;</span><br><span class="line">            * 10-iptables</span><br></pre></td></tr></table></figure>
+
+<h3 id="附录4"><a href="#附录4" class="headerlink" title="附录4"></a>附录4</h3><p>instack-undercloud中使用到的elements以及其中hook和脚本，在instack中被合并之后的示例：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br></pre></td><td class="code"><pre><span class="line">▾ cleanup.d&#x2F;</span><br><span class="line">    01-copy-manifests-dir*</span><br><span class="line">▾ environment.d&#x2F;</span><br><span class="line">    01-export-install-types.bash</span><br><span class="line">    02-puppet-modules-install-types.sh</span><br><span class="line">    10-os-apply-config-venv-dir.bash</span><br><span class="line">    14-manifests</span><br><span class="line">▾ extra-data.d&#x2F;</span><br><span class="line">    10-install-git*</span><br><span class="line">    20-manifest-dir*</span><br><span class="line">    75-inject-element-manifest*</span><br><span class="line">    98-source-repositories*</span><br><span class="line">    99-enable-install-types*</span><br><span class="line">▾ install.d&#x2F;</span><br><span class="line">  ▾ os-apply-config-source-install&#x2F;</span><br><span class="line">      10-os-apply-config*</span><br><span class="line">  ▾ os-refresh-config-source-install&#x2F;</span><br><span class="line">      10-os-refresh-config*</span><br><span class="line">  ▾ puppet-modules-package-install&#x2F;</span><br><span class="line">      75-puppet-modules-package*</span><br><span class="line">  ▾ puppet-modules-source-install&#x2F;</span><br><span class="line">      75-puppet-modules-source*</span><br><span class="line">    02-puppet-stack-config*</span><br><span class="line">    10-hiera-yaml-symlink*</span><br><span class="line">    10-puppet-stack-config-puppet-module*</span><br><span class="line">    11-create-template-root*</span><br><span class="line">    99-install-config-templates*</span><br><span class="line">    99-os-refresh-config-install-scripts*</span><br><span class="line">    package-installs-hiera</span><br></pre></td></tr></table></figure>
+
+
+
+
+          </section>
+        </article>
+        
+
+       
+        <div class="pager">
+          
+            <a class="post-prev pager-item" href="/2017/04/16/openstack/tripleo/introspection.html" >
+              <strong class="article-nav-caption">Newer</strong>
+              <p class="post-nav-title">TripleO Introspection 介绍</p>
+            </a>
+          
+          
+            <a class="post-next pager-item" href="/2017/03/06/openstack/tripleo/instack.html">
+              <strong class="article-nav-caption">Older</strong>
+              <p class="post-nav-title">TripleO instack介绍</p>
+            </a>
+          
+        </div>
+        
+
+         <!-- comments -->
+        <div class="comment-section">
+  
+    
+    
+<link rel="stylesheet" href="/css/gitalk.css">
+
+    
+<script src="/lib/gitalk.min.js"></script>
+
+    <div id="gitalk-container"></div>
+    <script>
+      const gitalk = new Gitalk({
+        clientID: '54c13c09b0079cbb2386',
+        clientSecret: 'a4b61935040bb6a0ef0764889b6283a21fba00dd',
+        repo: 'hackerain.github.io',
+        owner: 'hackerain',
+        admin: ['hackerain'],
+        id: location.pathname.substr(11,30)+":"+location.pathname.split("").reduce(function(a,b){a=((a<<5)-a)+b.charCodeAt(0);return a&a},0),
+        distractionFreeMode: true
+      })
+      gitalk.render('gitalk-container')
+    </script>
+  
+
+
+</div>
+
+
+    </div>
+    
+</div>
+
+                </div>
+            </div>
+        </div>
+        <footer class="footer">
+    <p>由<a href="http://hexo.io/" target="_blank">Hexo</a>强力驱动，搭载<a target="_blank" rel="noopener" href="https://github.com/wayou/hexo-theme-gstyle">gstyle</a>主题</p>
+    <p>
+        &copy; 2020 hackerain
+    </p>
+</footer>
+
+<script src="/lib/jquery.js"></script>
+
+
+<script src="/lib/waves.js"></script>
+
+
+<script src="/lib/jquery-ui.js"></script>
+
+
+<script src="/lib/jquery.tocify.js"></script>
+
+
+<script src="/js/main.js"></script>
+
+
+    </body>
+</html>

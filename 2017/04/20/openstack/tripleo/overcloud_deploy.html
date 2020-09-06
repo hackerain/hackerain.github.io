@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+          <head>
+        <meta charset="utf-8">
+            
+            <title>
+                TripleO OverCloud部署解析 | 开心鬼
+            </title>
+            <meta content="width=device-width, initial-scale=1" name="viewport">
+            <meta name="theme-color" content="#4184f3">
+            
+            
+            <link href="/favicon.ico" rel="icon"/>
+            
+
+            
+<link rel="stylesheet" href="/css/highlight.light.css">
+
+            
+<link rel="stylesheet" href="/css/prism-customize.css">
+
+            
+<link rel="stylesheet" href="/css/nav-icon.css">
+
+            
+<link rel="stylesheet" href="/css/waves.min.css">
+
+            
+<link rel="stylesheet" href="/css/jquery.tocify.css">
+
+            
+<link rel="stylesheet" href="/css/main.css">
+
+            
+<link rel="stylesheet" href="/css/nav-indicator.css">
+
+            
+  
+  <!-- 百度统计 -->
+  <script>
+  var _hmt = _hmt || [];
+  (function() {
+    var hm = document.createElement("script");
+    hm.src = "//hm.baidu.com/hm.js?52c2063ad58df7e49e95e3ed44358e2c";
+    var s = document.getElementsByTagName("script")[0];
+    s.parentNode.insertBefore(hm, s);
+  })();
+  </script>
+  
+
+  
+            </meta>
+        </meta>
+    <meta name="generator" content="Hexo 5.1.1"></head>
+
+    <body>
+        <header>
+            <!-- cover image or sth. -->
+        </header>
+        <div id="main" class="m-scene">
+            
+<div class="nav-wrapper">
+
+    <div class="container">
+        <nav>
+            <div class="logo wave">
+                <a href="/" id="logo">
+                    开心鬼
+                </a>
+            </div>
+            <div class="nav-toggle-icon" >
+                <div class="material-hamburger">
+                    <span>
+                    </span>
+                    <span>
+                    </span>
+                    <span>
+                    </span>
+                </div>
+            </div>
+            <div class="menu-wrapper">
+                <div class="nav-indicator">
+                </div>
+                <ul class="menus">
+                    
+                     
+                        <li>
+                            <a class="wave " href="/">
+                                Home
+                            </a>
+                        </li>
+                     
+                        <li>
+                            <a class="wave " href="/archives">
+                                Archive
+                            </a>
+                        </li>
+                     
+                        <li>
+                            <a class="wave " href="/about">
+                                About
+                            </a>
+                        </li>
+                     
+                        <li>
+                            <a class="wave no-smoothstate" href="/atom.xml">
+                                RSS
+                            </a>
+                        </li>
+                     
+                    
+                   
+                </ul>
+            </div>
+        </nav>
+    </div>
+</div>
+            <div class="container content">
+                <div class="scene_element scene_element--fadein">
+                    <div class="row">
+    <div class="main">
+        <article>
+          
+          <header class="post-header">
+          
+          </header>
+          <h1 class="post-title">TripleO OverCloud部署解析</h1>
+
+          <section class="post-info">
+            <span class="post-date">2017/04/20</span>
+            
+            
+          </section>
+
+          <section class="post-content">
+            <p>把物理网络配置好，镜像以及裸机信息录入系统，设置好Metadata，一切准备好之后，就可以开始部署OverCloud了，部署OverCloud非常简单，只需要执行一条命令：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">openstack overcloud deploy --templates &#x2F;usr&#x2F;share&#x2F;openstack-tripleo-heat-templates&#x2F; \</span><br><span class="line">  -r &#x2F;home&#x2F;stack&#x2F;templates&#x2F;roles&#x2F;roles_data.yaml \</span><br><span class="line">  -e &#x2F;home&#x2F;stack&#x2F;templates&#x2F;environments&#x2F;low-memory-usage.yaml \</span><br><span class="line">  -e &#x2F;home&#x2F;stack&#x2F;templates&#x2F;environments&#x2F;environment.yaml</span><br></pre></td></tr></table></figure>
+
+<p>这条命令背后到底发生了什么？在前面概览中介绍了部署OverCloud的过程其实是在跑Heat Template的过程，反映到Heat里，就是要创建一个stack，创建这个stack的过程，就是在跑Heat Template的过程，所以这个命令做的大部分工作都是在为创建这个stack做准备，创建环境变量，解析Template，生成自定义的Role，传递各种参数，然后创建stack，整体的数据流如下图：</p>
+<p><img src="/assets/overcloud_dataflow.png"></p>
+<p>在部署OverCloud之前，首先会生成一个Plan，在前面介绍过，Heat的模板是在<code>tripleo-heat-templates</code>这个项目中定义的，这个里面有一些模板里面是有模板变量的，比如自定义的Role，需要根据参数进行解析，这些模板被解析完之后，会被上传到Swift里一个以将要创建的Heat Stack的名字命名的container里，默认为<code>overcloud</code>，在创建Heat Stack时，Heat所用到的模板，就是直接从Swift里获取的，所以这个过程大致如下：</p>
+<ul>
+<li>客户端先调用Mistral里面的<code>tripleo.plan.create_container</code>这个workflow，在Swift里创建了一个名称为<code>overcloud</code>的container；</li>
+<li>然后客户端直接调用swift接口，将原始模板上传到这个container里；</li>
+<li>然后开始执行<code>tripleo.plan_management.v1.create_deployment_plan</code>这个workflow，这个workflow定义了3个action：<ul>
+<li><code>tripleo.plan.create</code>，将<code>tripleo-heat-templates</code>里的<code>root_template</code>和<code>root_environment</code>存储到Mistral的Environment里，所谓<code>root_template</code>就是<code>overcloud.yaml</code>这个文件，它是创建这个stack里的最上层的stack，这个stack里又嵌套了非常多的stack，每一个stack都负责做一块事情；<code>root_environment</code>则是指的<code>overcloud-resource-registry-puppet.yaml</code>这个文件，这个文件是Heat里用到的Environment，定义了Heat里的Resource对应的模板文件；</li>
+<li><code>tripleo.parameters.generate_passwords</code>，这个action生成了各个服务的密码，即每个服务都会在Keystone里生成一个账户，后面会被配置到各个服务的配置文件中，比如Nova会创建一个名为nova的用户，它的密码就是在这个阶段生成的，这些密码也被上传到了Mistral的Environment里；</li>
+<li><code>tripleo.templates.process</code>，这个action主要是处理模板，根据指定的变量渲染模板，生成本次部署特定的模板，比如生成自定义的Role，此外，再结合前面的几个action生成的结果，这个action最终生成了创建stack需要使用的参数；</li>
+</ul>
+</li>
+<li>上面的准备工作做好之后，就开始执行<code>tripleo.deployment.v1.deploy_plan</code>这个workflow，这个workflow就是要实施前面定义的Plan了，其实就是调用heat，结合在这个Plan中定义的模板以及环境变量，开始创建这个stack了，部署整个overcloud的过程就是创建这个stack的过程，这个stack又嵌套了非常多的子stack，比如创建裸机，部署系统，配置系统，这些都被封装成了stack，通过执行这一个个stack，来完成部署过程。</li>
+<li>等Heat Stack创建完成之后，会上传overcloudrc文件到各个服务器，整个部署过程就完成了。</li>
+</ul>
+<p>可以看到，创建stack的过程，也就是<code>tripleo-heat-templates</code>这个项目，是整个TripleO的最核心部分，它决定了最终部署出来的集群是什么样子，应该如何配置各个服务，后面我们会专门介绍下TripleO的Template。</p>
+
+          </section>
+        </article>
+        
+
+       
+        <div class="pager">
+          
+            <a class="post-prev pager-item" href="/2017/04/23/openstack/tripleo/tht.html" >
+              <strong class="article-nav-caption">Newer</strong>
+              <p class="post-nav-title">TripleO-Heat-Templates解析</p>
+            </a>
+          
+          
+            <a class="post-next pager-item" href="/2017/04/16/openstack/tripleo/introspection.html">
+              <strong class="article-nav-caption">Older</strong>
+              <p class="post-nav-title">TripleO Introspection 介绍</p>
+            </a>
+          
+        </div>
+        
+
+         <!-- comments -->
+        <div class="comment-section">
+  
+    
+    
+<link rel="stylesheet" href="/css/gitalk.css">
+
+    
+<script src="/lib/gitalk.min.js"></script>
+
+    <div id="gitalk-container"></div>
+    <script>
+      const gitalk = new Gitalk({
+        clientID: '54c13c09b0079cbb2386',
+        clientSecret: 'a4b61935040bb6a0ef0764889b6283a21fba00dd',
+        repo: 'hackerain.github.io',
+        owner: 'hackerain',
+        admin: ['hackerain'],
+        id: location.pathname.substr(11,30)+":"+location.pathname.split("").reduce(function(a,b){a=((a<<5)-a)+b.charCodeAt(0);return a&a},0),
+        distractionFreeMode: true
+      })
+      gitalk.render('gitalk-container')
+    </script>
+  
+
+
+</div>
+
+
+    </div>
+    
+</div>
+
+                </div>
+            </div>
+        </div>
+        <footer class="footer">
+    <p>由<a href="http://hexo.io/" target="_blank">Hexo</a>强力驱动，搭载<a target="_blank" rel="noopener" href="https://github.com/wayou/hexo-theme-gstyle">gstyle</a>主题</p>
+    <p>
+        &copy; 2020 hackerain
+    </p>
+</footer>
+
+<script src="/lib/jquery.js"></script>
+
+
+<script src="/lib/waves.js"></script>
+
+
+<script src="/lib/jquery-ui.js"></script>
+
+
+<script src="/lib/jquery.tocify.js"></script>
+
+
+<script src="/js/main.js"></script>
+
+
+    </body>
+</html>

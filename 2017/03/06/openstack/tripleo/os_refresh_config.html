@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+          <head>
+        <meta charset="utf-8">
+            
+            <title>
+                TripleO os-refresh-config介绍 | 开心鬼
+            </title>
+            <meta content="width=device-width, initial-scale=1" name="viewport">
+            <meta name="theme-color" content="#4184f3">
+            
+            
+            <link href="/favicon.ico" rel="icon"/>
+            
+
+            
+<link rel="stylesheet" href="/css/highlight.light.css">
+
+            
+<link rel="stylesheet" href="/css/prism-customize.css">
+
+            
+<link rel="stylesheet" href="/css/nav-icon.css">
+
+            
+<link rel="stylesheet" href="/css/waves.min.css">
+
+            
+<link rel="stylesheet" href="/css/jquery.tocify.css">
+
+            
+<link rel="stylesheet" href="/css/main.css">
+
+            
+<link rel="stylesheet" href="/css/nav-indicator.css">
+
+            
+  
+  <!-- 百度统计 -->
+  <script>
+  var _hmt = _hmt || [];
+  (function() {
+    var hm = document.createElement("script");
+    hm.src = "//hm.baidu.com/hm.js?52c2063ad58df7e49e95e3ed44358e2c";
+    var s = document.getElementsByTagName("script")[0];
+    s.parentNode.insertBefore(hm, s);
+  })();
+  </script>
+  
+
+  
+            </meta>
+        </meta>
+    <meta name="generator" content="Hexo 5.1.1"></head>
+
+    <body>
+        <header>
+            <!-- cover image or sth. -->
+        </header>
+        <div id="main" class="m-scene">
+            
+<div class="nav-wrapper">
+
+    <div class="container">
+        <nav>
+            <div class="logo wave">
+                <a href="/" id="logo">
+                    开心鬼
+                </a>
+            </div>
+            <div class="nav-toggle-icon" >
+                <div class="material-hamburger">
+                    <span>
+                    </span>
+                    <span>
+                    </span>
+                    <span>
+                    </span>
+                </div>
+            </div>
+            <div class="menu-wrapper">
+                <div class="nav-indicator">
+                </div>
+                <ul class="menus">
+                    
+                     
+                        <li>
+                            <a class="wave " href="/">
+                                Home
+                            </a>
+                        </li>
+                     
+                        <li>
+                            <a class="wave " href="/archives">
+                                Archive
+                            </a>
+                        </li>
+                     
+                        <li>
+                            <a class="wave " href="/about">
+                                About
+                            </a>
+                        </li>
+                     
+                        <li>
+                            <a class="wave no-smoothstate" href="/atom.xml">
+                                RSS
+                            </a>
+                        </li>
+                     
+                    
+                   
+                </ul>
+            </div>
+        </nav>
+    </div>
+</div>
+            <div class="container content">
+                <div class="scene_element scene_element--fadein">
+                    <div class="row">
+    <div class="main">
+        <article>
+          
+          <header class="post-header">
+          
+          </header>
+          <h1 class="post-title">TripleO os-refresh-config介绍</h1>
+
+          <section class="post-info">
+            <span class="post-date">2017/03/06</span>
+            
+            
+          </section>
+
+          <section class="post-content">
+            <p>os-refresh-config是一个用来有序执行一组脚本的工具，它将脚本分组定义成了4个阶段：</p>
+<ul>
+<li>pre-configure</li>
+<li>configure</li>
+<li>post-configure</li>
+<li>migration</li>
+</ul>
+<p>每个阶段对应一个目录：</p>
+<ul>
+<li>pre-configure.d</li>
+<li>configure.d</li>
+<li>post-configure.d</li>
+<li>migration.d</li>
+</ul>
+<p>这些目录的位置默认是在<code>/usr/libexec/os-refresh-config</code>目录下，也可以由<code>OS_REFRESH_CONFIG_BASE_DIR</code>环境变量指定位置。在每个目录中放置了一些脚本，使用dib-run-parts来依次执行这些目录中的脚本，dib-run-parts是<a target="_blank" rel="noopener" href="https://github.com/openstack/dib-utils/">dib-utils</a>中的工具，这个工具最初是在diskimage-builder中被使用的。由于脚本在执行过程中，会使用到各种参数，都是通过环境变量指定的，dib-run-parts在执行这些脚本之前，会先导出环境变量，这些环境变量需要被定义在environment.d目录下，dib-run-parts会先source这些环境变量。</p>
+<p>这个工具有点类似于ansible的编排功能，通过执行这4个阶段的脚本，来完成相应的配置，在部署undercloud时，就是用它来编排整个过程的：</p>
+<pre><code>[stack@undercloud os-refresh-config]$ tree
+.
+|-- configure.d
+|   |-- 20-os-apply-config
+|   |-- 30-reload-keepalived
+|   |-- 40-hiera-datafiles
+|   |-- 40-truncate-nova-config
+|   `-- 50-puppet-stack-config
+`-- post-configure.d
+    |-- 10-iptables
+    |-- 80-seedstack-masquerade
+    |-- 98-undercloud-setup
+    `-- 99-refresh-completed</code></pre>
+
+          </section>
+        </article>
+        
+
+       
+        <div class="pager">
+          
+            <a class="post-prev pager-item" href="/2017/03/06/openstack/tripleo/os_apply_config.html" >
+              <strong class="article-nav-caption">Newer</strong>
+              <p class="post-nav-title">TripleO os-apply-config介绍</p>
+            </a>
+          
+          
+            <a class="post-next pager-item" href="/2017/02/25/openstack/tripleo/quickstart.html">
+              <strong class="article-nav-caption">Older</strong>
+              <p class="post-nav-title">TripleO-Quickstart使用</p>
+            </a>
+          
+        </div>
+        
+
+         <!-- comments -->
+        <div class="comment-section">
+  
+    
+    
+<link rel="stylesheet" href="/css/gitalk.css">
+
+    
+<script src="/lib/gitalk.min.js"></script>
+
+    <div id="gitalk-container"></div>
+    <script>
+      const gitalk = new Gitalk({
+        clientID: '54c13c09b0079cbb2386',
+        clientSecret: 'a4b61935040bb6a0ef0764889b6283a21fba00dd',
+        repo: 'hackerain.github.io',
+        owner: 'hackerain',
+        admin: ['hackerain'],
+        id: location.pathname.substr(11,30)+":"+location.pathname.split("").reduce(function(a,b){a=((a<<5)-a)+b.charCodeAt(0);return a&a},0),
+        distractionFreeMode: true
+      })
+      gitalk.render('gitalk-container')
+    </script>
+  
+
+
+</div>
+
+
+    </div>
+    
+</div>
+
+                </div>
+            </div>
+        </div>
+        <footer class="footer">
+    <p>由<a href="http://hexo.io/" target="_blank">Hexo</a>强力驱动，搭载<a target="_blank" rel="noopener" href="https://github.com/wayou/hexo-theme-gstyle">gstyle</a>主题</p>
+    <p>
+        &copy; 2020 hackerain
+    </p>
+</footer>
+
+<script src="/lib/jquery.js"></script>
+
+
+<script src="/lib/waves.js"></script>
+
+
+<script src="/lib/jquery-ui.js"></script>
+
+
+<script src="/lib/jquery.tocify.js"></script>
+
+
+<script src="/js/main.js"></script>
+
+
+    </body>
+</html>
