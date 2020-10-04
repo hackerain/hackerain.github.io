@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+          <head>
+        <meta charset="utf-8">
+            
+            <title>
+                Kubernetes APIServer GenericAPIServer解析 | 开心鬼
+            </title>
+            <meta content="width=device-width, initial-scale=1" name="viewport">
+            <meta name="theme-color" content="#4184f3">
+            
+            
+            <link href="/favicon.ico" rel="icon"/>
+            
+
+            
+<link rel="stylesheet" href="/css/highlight.light.css">
+
+            
+<link rel="stylesheet" href="/css/prism-customize.css">
+
+            
+<link rel="stylesheet" href="/css/nav-icon.css">
+
+            
+<link rel="stylesheet" href="/css/waves.min.css">
+
+            
+<link rel="stylesheet" href="/css/jquery.tocify.css">
+
+            
+<link rel="stylesheet" href="/css/main.css">
+
+            
+<link rel="stylesheet" href="/css/nav-indicator.css">
+
+            
+  
+  <!-- 百度统计 -->
+  <script>
+  var _hmt = _hmt || [];
+  (function() {
+    var hm = document.createElement("script");
+    hm.src = "//hm.baidu.com/hm.js?52c2063ad58df7e49e95e3ed44358e2c";
+    var s = document.getElementsByTagName("script")[0];
+    s.parentNode.insertBefore(hm, s);
+  })();
+  </script>
+  
+
+  
+            </meta>
+        </meta>
+    <meta name="generator" content="Hexo 5.1.1"></head>
+
+    <body>
+        <header>
+            <!-- cover image or sth. -->
+        </header>
+        <div id="main" class="m-scene">
+            
+<div class="nav-wrapper">
+
+    <div class="container">
+        <nav>
+            <div class="logo wave">
+                <a href="/" id="logo">
+                    开心鬼
+                </a>
+            </div>
+            <div class="nav-toggle-icon" >
+                <div class="material-hamburger">
+                    <span>
+                    </span>
+                    <span>
+                    </span>
+                    <span>
+                    </span>
+                </div>
+            </div>
+            <div class="menu-wrapper">
+                <div class="nav-indicator">
+                </div>
+                <ul class="menus">
+                    
+                     
+                        <li>
+                            <a class="wave " href="/">
+                                Home
+                            </a>
+                        </li>
+                     
+                        <li>
+                            <a class="wave " href="/archives">
+                                Archive
+                            </a>
+                        </li>
+                     
+                        <li>
+                            <a class="wave " href="/about">
+                                About
+                            </a>
+                        </li>
+                     
+                        <li>
+                            <a class="wave no-smoothstate" href="/atom.xml">
+                                RSS
+                            </a>
+                        </li>
+                     
+                    
+                   
+                </ul>
+            </div>
+        </nav>
+    </div>
+</div>
+            <div class="container content">
+                <div class="scene_element scene_element--fadein">
+                    <div class="row">
+    <div class="main">
+        <article>
+          
+          <header class="post-header">
+          
+          </header>
+          <h1 class="post-title">Kubernetes APIServer GenericAPIServer解析</h1>
+
+          <section class="post-info">
+            <span class="post-date">2020/10/05</span>
+            
+            
+            <span class="post-tags">
+              <ul class="post-tag-list" itemprop="keywords"><li class="post-tag-list-item"><a class="post-tag-list-link" href="/tags/kubernetes/" rel="tag">kubernetes</a></li></ul>
+            </span>
+            
+          </section>
+
+          <section class="post-content">
+            <p>在<a href="kube-apiserver-overview">Kubernetes APIServer 机制概述</a>中我们介绍到了APIServer的本质其实是一个实现了RESTful API的WebServer，它使用golang的<a target="_blank" rel="noopener" href="https://golang.org/pkg/net/http/">net/http</a>的Server构建，并且Handler是其中非常重要的概念，此外，又简单介绍了APIServer的扩展机制，即Aggregator, APIExtensions以及KubeAPIServer这三者之间通过Delegation的方式实现了扩展。</p>
+<p>在<a href="kube-apiserver-storage-overview">Kubernetes APIServer Storage 框架解析</a>中，我们介绍了APIServer相关的存储框架，每个API对象，都有对应的<code>REST store</code>以及<code>etcd store</code>。</p>
+<p>而本篇文章介绍到的<code>GenericAPIServer</code>跟上面两个内容紧密相关，它是APIServer的基础，Aggregator, APIExtensions以及KubeAPIServer每个都包含一个GenericAPIServer，他们各自的API对象都以Group的形式，注册进GenericAPIServer中，并且组织成最终的Handler，因此，掌握<code>GenericAPIServer</code>有助于理解APIServer的扩展机制以及运行原理，本篇文章重点介绍<code>GenericAPIServer</code>的以下两方面内容：</p>
+<ul>
+<li>API对象的注册</li>
+<li>Handler的处理</li>
+</ul>
+<p>其相关的代码在<a target="_blank" rel="noopener" href="https://github.com/kubernetes/apiserver">apiserver</a>库中的<code>apiserver/pkg/server/</code>目录下。</p>
+<h1 id="基础知识"><a href="#基础知识" class="headerlink" title="基础知识"></a>基础知识</h1><h2 id="APIGroup"><a href="#APIGroup" class="headerlink" title="APIGroup"></a>APIGroup</h2><h2 id="go-restful"><a href="#go-restful" class="headerlink" title="go-restful"></a>go-restful</h2><p>Kubernetes使用<code>go-restful</code>这个第三方库对核心的RESTful API进行了实现，其基础知识以及在Kubernetes中的用法，可阅读这篇文章：<a href="../golang/go-restful-overview">go-restful简析</a></p>
+<h2 id="NonGoRestfulMux"><a href="#NonGoRestfulMux" class="headerlink" title="NonGoRestfulMux"></a>NonGoRestfulMux</h2><h1 id="API对象的注册"><a href="#API对象的注册" class="headerlink" title="API对象的注册"></a>API对象的注册</h1><h1 id="Handler的处理"><a href="#Handler的处理" class="headerlink" title="Handler的处理"></a>Handler的处理</h1>
+          </section>
+        </article>
+        
+
+       
+        <div class="pager">
+          
+          
+            <a class="post-next pager-item" href="/2020/09/28/golang/go-restful-overview.html">
+              <strong class="article-nav-caption">Older</strong>
+              <p class="post-nav-title">go-restful简析</p>
+            </a>
+          
+        </div>
+        
+
+         <!-- comments -->
+        <div class="comment-section">
+  
+    
+    
+<link rel="stylesheet" href="/css/gitalk.css">
+
+    
+<script src="/lib/gitalk.min.js"></script>
+
+    <div id="gitalk-container"></div>
+    <script>
+      const gitalk = new Gitalk({
+        clientID: '54c13c09b0079cbb2386',
+        clientSecret: 'a4b61935040bb6a0ef0764889b6283a21fba00dd',
+        repo: 'hackerain.github.io',
+        owner: 'hackerain',
+        admin: ['hackerain'],
+        id: location.pathname.substr(11,30)+":"+location.pathname.split("").reduce(function(a,b){a=((a<<5)-a)+b.charCodeAt(0);return a&a},0),
+        distractionFreeMode: true
+      })
+      gitalk.render('gitalk-container')
+    </script>
+  
+
+
+</div>
+
+
+    </div>
+    
+</div>
+
+                </div>
+            </div>
+        </div>
+        <footer class="footer">
+    <p>由<a href="http://hexo.io/" target="_blank">Hexo</a>强力驱动，搭载<a target="_blank" rel="noopener" href="https://github.com/wayou/hexo-theme-gstyle">gstyle</a>主题</p>
+    <p>
+        &copy; 2020 hackerain
+    </p>
+</footer>
+
+<script src="/lib/jquery.js"></script>
+
+
+<script src="/lib/waves.js"></script>
+
+
+<script src="/lib/jquery-ui.js"></script>
+
+
+<script src="/lib/jquery.tocify.js"></script>
+
+
+<script src="/js/main.js"></script>
+
+
+    </body>
+</html>
