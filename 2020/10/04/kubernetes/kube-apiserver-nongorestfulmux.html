@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+          <head>
+        <meta charset="utf-8">
+            
+            <title>
+                Kubernetes APIServer NonGoRestfulMux | 开心鬼
+            </title>
+            <meta content="width=device-width, initial-scale=1" name="viewport">
+            <meta name="theme-color" content="#4184f3">
+            
+            
+            <link href="/favicon.ico" rel="icon"/>
+            
+
+            
+<link rel="stylesheet" href="/css/highlight.light.css">
+
+            
+<link rel="stylesheet" href="/css/prism-customize.css">
+
+            
+<link rel="stylesheet" href="/css/nav-icon.css">
+
+            
+<link rel="stylesheet" href="/css/waves.min.css">
+
+            
+<link rel="stylesheet" href="/css/jquery.tocify.css">
+
+            
+<link rel="stylesheet" href="/css/main.css">
+
+            
+<link rel="stylesheet" href="/css/nav-indicator.css">
+
+            
+  
+  <!-- 百度统计 -->
+  <script>
+  var _hmt = _hmt || [];
+  (function() {
+    var hm = document.createElement("script");
+    hm.src = "//hm.baidu.com/hm.js?52c2063ad58df7e49e95e3ed44358e2c";
+    var s = document.getElementsByTagName("script")[0];
+    s.parentNode.insertBefore(hm, s);
+  })();
+  </script>
+  
+
+  
+            </meta>
+        </meta>
+    <meta name="generator" content="Hexo 5.1.1"></head>
+
+    <body>
+        <header>
+            <!-- cover image or sth. -->
+        </header>
+        <div id="main" class="m-scene">
+            
+<div class="nav-wrapper">
+
+    <div class="container">
+        <nav>
+            <div class="logo wave">
+                <a href="/" id="logo">
+                    开心鬼
+                </a>
+            </div>
+            <div class="nav-toggle-icon" >
+                <div class="material-hamburger">
+                    <span>
+                    </span>
+                    <span>
+                    </span>
+                    <span>
+                    </span>
+                </div>
+            </div>
+            <div class="menu-wrapper">
+                <div class="nav-indicator">
+                </div>
+                <ul class="menus">
+                    
+                     
+                        <li>
+                            <a class="wave " href="/">
+                                Home
+                            </a>
+                        </li>
+                     
+                        <li>
+                            <a class="wave " href="/archives">
+                                Archive
+                            </a>
+                        </li>
+                     
+                        <li>
+                            <a class="wave " href="/about">
+                                About
+                            </a>
+                        </li>
+                     
+                        <li>
+                            <a class="wave no-smoothstate" href="/atom.xml">
+                                RSS
+                            </a>
+                        </li>
+                     
+                    
+                   
+                </ul>
+            </div>
+        </nav>
+    </div>
+</div>
+            <div class="container content">
+                <div class="scene_element scene_element--fadein">
+                    <div class="row">
+    <div class="main">
+        <article>
+          
+          <header class="post-header">
+          
+          </header>
+          <h1 class="post-title">Kubernetes APIServer NonGoRestfulMux</h1>
+
+          <section class="post-info">
+            <span class="post-date">2020/10/04</span>
+            
+            
+            <span class="post-tags">
+              <ul class="post-tag-list" itemprop="keywords"><li class="post-tag-list-item"><a class="post-tag-list-link" href="/tags/kubernetes/" rel="tag">kubernetes</a></li></ul>
+            </span>
+            
+          </section>
+
+          <section class="post-content">
+            <p>在<a target="_blank" rel="noopener" href="https://hackerain.me/2020/09/28/golang/go-restful-overview.html">go-restful</a>的介绍中，有介绍过Kubernetes中核心的API是使用go-restful来构建的，我们知道除了核心API，Kubernetes APIServer还提供了两种扩展机制，分别为Aggregation和APIExtensions，这两者中的API对象，则是使用NonGoRestfulMux来构建的，之所以不继续使用go-restful，原因还没有细究，可能是因为一些兼容性问题，后续有可能抛弃go-restful，完全切到NonGoRestfulMux上来，但是看改造工作量还是比较大的。下面我们来看看这个NonGoRestfulMux究竟是个什么东西，其代码位于：<code>apiserver/pkg/server/mux/pathrecorder.go</code></p>
+<p>其结构体如下：</p>
+<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">type</span> PathRecorderMux <span class="keyword">struct</span> &#123;</span><br><span class="line">	<span class="comment">// name is used for logging so you can trace requests through</span></span><br><span class="line">	name <span class="keyword">string</span></span><br><span class="line"></span><br><span class="line">	lock            sync.Mutex</span><br><span class="line">	notFoundHandler http.Handler</span><br><span class="line">	pathToHandler   <span class="keyword">map</span>[<span class="keyword">string</span>]http.Handler</span><br><span class="line">	prefixToHandler <span class="keyword">map</span>[<span class="keyword">string</span>]http.Handler</span><br><span class="line"></span><br><span class="line">	<span class="comment">// mux stores a pathHandler and is used to handle the actual serving.</span></span><br><span class="line">	<span class="comment">// Turns out, we want to accept trailing slashes, BUT we don&#x27;t care about handling</span></span><br><span class="line">	<span class="comment">// everything under them.  This does exactly matches only unless its explicitly requested to</span></span><br><span class="line">	<span class="comment">// do something different</span></span><br><span class="line">	mux atomic.Value</span><br><span class="line"></span><br><span class="line">	<span class="comment">// exposedPaths is the list of paths that should be shown at /</span></span><br><span class="line">	exposedPaths []<span class="keyword">string</span></span><br><span class="line"></span><br><span class="line">	<span class="comment">// pathStacks holds the stacks of all registered paths.  This allows us to show a more helpful message</span></span><br><span class="line">	<span class="comment">// before the &quot;http: multiple registrations for %s&quot; panic.</span></span><br><span class="line">	pathStacks <span class="keyword">map</span>[<span class="keyword">string</span>]<span class="keyword">string</span></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// pathHandler is an http.Handler that will satisfy requests first by exact match, then by prefix,</span></span><br><span class="line"><span class="comment">// then by notFoundHandler</span></span><br><span class="line"><span class="keyword">type</span> pathHandler <span class="keyword">struct</span> &#123;</span><br><span class="line">	<span class="comment">// muxName is used for logging so you can trace requests through</span></span><br><span class="line">	muxName <span class="keyword">string</span></span><br><span class="line"></span><br><span class="line">	<span class="comment">// pathToHandler is a map of exactly matching request to its handler</span></span><br><span class="line">	pathToHandler <span class="keyword">map</span>[<span class="keyword">string</span>]http.Handler</span><br><span class="line"></span><br><span class="line">	<span class="comment">// this has to be sorted by most slashes then by length</span></span><br><span class="line">	prefixHandlers []prefixHandler</span><br><span class="line"></span><br><span class="line">	<span class="comment">// notFoundHandler is the handler to use for satisfying requests with no other match</span></span><br><span class="line">	notFoundHandler http.Handler</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// prefixHandler holds the prefix it should match and the handler to use</span></span><br><span class="line"><span class="keyword">type</span> prefixHandler <span class="keyword">struct</span> &#123;</span><br><span class="line">	<span class="comment">// prefix is the prefix to test for a request match</span></span><br><span class="line">	prefix <span class="keyword">string</span></span><br><span class="line">	<span class="comment">// handler is used to satisfy matching requests</span></span><br><span class="line">	handler http.Handler</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p><code>PathRecorderMux</code>即为NonGoRestfulMux，它里面有个原子类型的属性<code>mux atomic.Value</code>是其中最重要的属性，<a target="_blank" rel="noopener" href="https://golang.org/pkg/sync/atomic/">atomic</a>是golang中一个用来做同步操作的数据类型，可以在不加锁的情况下，实现原子操作，通过store和load方法，来对其值进行存取。它存储的数据即为下面的<code>pathHandler</code>，<code>pathHandler</code>中又包含三个重要属性：pathToHandler, prefixHandlers以及notFoundHandler，即具体path到Handler的映射，某一个prefix到Handler的映射，以及路径没有匹配时映射的Handler，通过原子操作对其属性进行更新，而PathRecorderMux中的<code>pathToHandler</code>和<code>prefixToHandler</code>则都是为了能够线程安全的更新mux中的pathHandler而存在的。</p>
+<p>PathRecorderMux的构建方法如下：</p>
+<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">NewPathRecorderMux</span><span class="params">(name <span class="keyword">string</span>)</span> *<span class="title">PathRecorderMux</span></span> &#123;</span><br><span class="line">	ret := &amp;PathRecorderMux&#123;</span><br><span class="line">		name:            name,</span><br><span class="line">		pathToHandler:   <span class="keyword">map</span>[<span class="keyword">string</span>]http.Handler&#123;&#125;,</span><br><span class="line">		prefixToHandler: <span class="keyword">map</span>[<span class="keyword">string</span>]http.Handler&#123;&#125;,</span><br><span class="line">		mux:             atomic.Value&#123;&#125;,</span><br><span class="line">		exposedPaths:    []<span class="keyword">string</span>&#123;&#125;,</span><br><span class="line">		pathStacks:      <span class="keyword">map</span>[<span class="keyword">string</span>]<span class="keyword">string</span>&#123;&#125;,</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	ret.mux.Store(&amp;pathHandler&#123;notFoundHandler: http.NotFoundHandler()&#125;)</span><br><span class="line">	<span class="keyword">return</span> ret</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>通过Store()方法将一个初始化的pathHandler存储到mux中。然后通过Handle(), HandleFunc(), HandlePrefix()等方法向PathRecorderMux中注册Handler，以Handle()方法为例：</p>
+<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(m *PathRecorderMux)</span> <span class="title">Handle</span><span class="params">(path <span class="keyword">string</span>, handler http.Handler)</span></span> &#123;</span><br><span class="line">	m.lock.Lock()</span><br><span class="line">	<span class="keyword">defer</span> m.lock.Unlock()</span><br><span class="line">	m.trackCallers(path)</span><br><span class="line"></span><br><span class="line">	m.exposedPaths = <span class="built_in">append</span>(m.exposedPaths, path)</span><br><span class="line">	m.pathToHandler[path] = handler</span><br><span class="line">	m.refreshMuxLocked()</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(m *PathRecorderMux)</span> <span class="title">refreshMuxLocked</span><span class="params">()</span></span> &#123;</span><br><span class="line">	newMux := &amp;pathHandler&#123;</span><br><span class="line">		muxName:         m.name,</span><br><span class="line">		pathToHandler:   <span class="keyword">map</span>[<span class="keyword">string</span>]http.Handler&#123;&#125;,</span><br><span class="line">		prefixHandlers:  []prefixHandler&#123;&#125;,</span><br><span class="line">		notFoundHandler: http.NotFoundHandler(),</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">if</span> m.notFoundHandler != <span class="literal">nil</span> &#123;</span><br><span class="line">		newMux.notFoundHandler = m.notFoundHandler</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">for</span> path, handler := <span class="keyword">range</span> m.pathToHandler &#123;</span><br><span class="line">		newMux.pathToHandler[path] = handler</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	keys := sets.StringKeySet(m.prefixToHandler).List()</span><br><span class="line">	sort.Sort(sort.Reverse(byPrefixPriority(keys)))</span><br><span class="line">	<span class="keyword">for</span> _, prefix := <span class="keyword">range</span> keys &#123;</span><br><span class="line">		newMux.prefixHandlers = <span class="built_in">append</span>(newMux.prefixHandlers, prefixHandler&#123;</span><br><span class="line">			prefix:  prefix,</span><br><span class="line">			handler: m.prefixToHandler[prefix],</span><br><span class="line">		&#125;)</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	m.mux.Store(newMux)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>可见，其通过加锁的方式，首先向PathRecorderMux中的pathToHandler中添加path到Handler的映射，然后调用refreshMuxLocked()方法，构建了一个新的pathHandler，然后使用PathRecorderMux中的属性更新该pathHandler，然后再将其存储到mux中，通过这种方式完成了原子更新。这里可能有个疑问，既然atomic可以不加锁就实现原子操作，为什么这里还要加锁，其实，这里还有个golang的知识点，就是golang中的map是线程不安全的，所以在多线程环境下，操作map，一般都需要通过加锁，保证线程安全。那么问题又来了，既然加锁了，那为啥不直接使用map，还费这么大劲，搞个atomic，其实我感觉不是不可以，只是使用atomic会更方便些，因为当你要读取atomic中的数据时，就不需要再加锁了，保证原子性。</p>
+<p>下面来看看其ServeHTTP()方法，看它费这么大劲儿，到底是如何工作的：</p>
+<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// ServeHTTP makes it an http.Handler</span></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(m *PathRecorderMux)</span> <span class="title">ServeHTTP</span><span class="params">(w http.ResponseWriter, r *http.Request)</span></span> &#123;</span><br><span class="line">	m.mux.Load().(*pathHandler).ServeHTTP(w, r)</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// ServeHTTP makes it an http.Handler</span></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(h *pathHandler)</span> <span class="title">ServeHTTP</span><span class="params">(w http.ResponseWriter, r *http.Request)</span></span> &#123;</span><br><span class="line">	<span class="keyword">if</span> exactHandler, ok := h.pathToHandler[r.URL.Path]; ok &#123;</span><br><span class="line">		klog.V(<span class="number">5</span>).Infof(<span class="string">&quot;%v: %q satisfied by exact match&quot;</span>, h.muxName, r.URL.Path)</span><br><span class="line">		exactHandler.ServeHTTP(w, r)</span><br><span class="line">		<span class="keyword">return</span></span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	<span class="keyword">for</span> _, prefixHandler := <span class="keyword">range</span> h.prefixHandlers &#123;</span><br><span class="line">		<span class="keyword">if</span> strings.HasPrefix(r.URL.Path, prefixHandler.prefix) &#123;</span><br><span class="line">			klog.V(<span class="number">5</span>).Infof(<span class="string">&quot;%v: %q satisfied by prefix %v&quot;</span>, h.muxName, r.URL.Path, prefixHandler.prefix)</span><br><span class="line">			prefixHandler.handler.ServeHTTP(w, r)</span><br><span class="line">			<span class="keyword">return</span></span><br><span class="line">		&#125;</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	klog.V(<span class="number">5</span>).Infof(<span class="string">&quot;%v: %q satisfied by NotFoundHandler&quot;</span>, h.muxName, r.URL.Path)</span><br><span class="line">	h.notFoundHandler.ServeHTTP(w, r)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>看到PathRecorderMux中实现的ServeHTTP()方法，通过load()读出mux中的数据，然后进行类型转换，转换成pathHandler指针，然后调用pathHandler的ServeHTTP()方法，在pathHandler的ServeHTTP()方法中，则可以看到NonGoRestfulMux的真正作用了，即分三步走：</p>
+<ol>
+<li>首先从pathToHandler中找请求的路径跟注册的path完全匹配的，如果有，则由该Handler进行处理</li>
+<li>如果没有完全匹配的，则看是否跟注册的prefix匹配，如果有，则由该Handler进行处理</li>
+<li>如果上面都没匹配到，则由notFoundHandler进行处理</li>
+</ol>
+<p>以上，就是NonGoRestfulMux的核心功能了。</p>
+
+          </section>
+        </article>
+        
+
+       
+        <div class="pager">
+          
+            <a class="post-prev pager-item" href="/2020/10/05/kubernetes/kube-apiserver-genericapiserver.html" >
+              <strong class="article-nav-caption">Newer</strong>
+              <p class="post-nav-title">Kubernetes APIServer GenericAPIServer</p>
+            </a>
+          
+          
+            <a class="post-next pager-item" href="/2020/09/28/golang/go-restful-overview.html">
+              <strong class="article-nav-caption">Older</strong>
+              <p class="post-nav-title">go-restful简析</p>
+            </a>
+          
+        </div>
+        
+
+         <!-- comments -->
+        <div class="comment-section">
+  
+    
+    
+<link rel="stylesheet" href="/css/gitalk.css">
+
+    
+<script src="/lib/gitalk.min.js"></script>
+
+    <div id="gitalk-container"></div>
+    <script>
+      const gitalk = new Gitalk({
+        clientID: '54c13c09b0079cbb2386',
+        clientSecret: 'a4b61935040bb6a0ef0764889b6283a21fba00dd',
+        repo: 'hackerain.github.io',
+        owner: 'hackerain',
+        admin: ['hackerain'],
+        id: location.pathname.substr(11,30)+":"+location.pathname.split("").reduce(function(a,b){a=((a<<5)-a)+b.charCodeAt(0);return a&a},0),
+        distractionFreeMode: true
+      })
+      gitalk.render('gitalk-container')
+    </script>
+  
+
+
+</div>
+
+
+    </div>
+    
+</div>
+
+                </div>
+            </div>
+        </div>
+        <footer class="footer">
+    <p>由<a href="http://hexo.io/" target="_blank">Hexo</a>强力驱动，搭载<a target="_blank" rel="noopener" href="https://github.com/wayou/hexo-theme-gstyle">gstyle</a>主题</p>
+    <p>
+        &copy; 2020 hackerain
+    </p>
+</footer>
+
+<script src="/lib/jquery.js"></script>
+
+
+<script src="/lib/waves.js"></script>
+
+
+<script src="/lib/jquery-ui.js"></script>
+
+
+<script src="/lib/jquery.tocify.js"></script>
+
+
+<script src="/js/main.js"></script>
+
+
+    </body>
+</html>

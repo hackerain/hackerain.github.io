@@ -3,7 +3,7 @@
         <meta charset="utf-8">
             
             <title>
-                Kubernetes APIServer GenericAPIServer解析 | 开心鬼
+                Kubernetes APIServer GenericAPIServer | 开心鬼
             </title>
             <meta content="width=device-width, initial-scale=1" name="viewport">
             <meta name="theme-color" content="#4184f3">
@@ -123,7 +123,7 @@
           <header class="post-header">
           
           </header>
-          <h1 class="post-title">Kubernetes APIServer GenericAPIServer解析</h1>
+          <h1 class="post-title">Kubernetes APIServer GenericAPIServer</h1>
 
           <section class="post-info">
             <span class="post-date">2020/10/05</span>
@@ -136,16 +136,20 @@
           </section>
 
           <section class="post-content">
-            <p>在<a href="kube-apiserver-overview">Kubernetes APIServer 机制概述</a>中我们介绍到了APIServer的本质其实是一个实现了RESTful API的WebServer，它使用golang的<a target="_blank" rel="noopener" href="https://golang.org/pkg/net/http/">net/http</a>的Server构建，并且Handler是其中非常重要的概念，此外，又简单介绍了APIServer的扩展机制，即Aggregator, APIExtensions以及KubeAPIServer这三者之间通过Delegation的方式实现了扩展。</p>
-<p>在<a href="kube-apiserver-storage-overview">Kubernetes APIServer Storage 框架解析</a>中，我们介绍了APIServer相关的存储框架，每个API对象，都有对应的<code>REST store</code>以及<code>etcd store</code>。</p>
+            <p>在<a target="_blank" rel="noopener" href="https://hackerain.me/2020/08/09/kubernetes/kube-apiserver-overview.html">Kubernetes APIServer 机制概述</a>中我们介绍到了APIServer的本质其实是一个实现了RESTful API的WebServer，它使用golang的<a target="_blank" rel="noopener" href="https://golang.org/pkg/net/http/">net/http</a>的Server构建，并且Handler是其中非常重要的概念，此外，又简单介绍了APIServer的扩展机制，即Aggregator, APIExtensions以及KubeAPIServer这三者之间通过Delegation的方式实现了扩展。</p>
+<p>在<a target="_blank" rel="noopener" href="https://hackerain.me/2020/09/19/kubernetes/kube-apiserver-storage-overview.html">Kubernetes APIServer Storage 框架解析</a>中，我们介绍了APIServer相关的存储框架，每个API对象，都有对应的<code>REST store</code>以及<code>etcd store</code>。</p>
 <p>而本篇文章介绍到的<code>GenericAPIServer</code>跟上面两个内容紧密相关，它是APIServer的基础，Aggregator, APIExtensions以及KubeAPIServer每个都包含一个GenericAPIServer，他们各自的API对象都以Group的形式，注册进GenericAPIServer中，并且组织成最终的Handler，因此，掌握<code>GenericAPIServer</code>有助于理解APIServer的扩展机制以及运行原理，本篇文章重点介绍<code>GenericAPIServer</code>的以下两方面内容：</p>
 <ul>
 <li>API对象的注册</li>
 <li>Handler的处理</li>
 </ul>
 <p>其相关的代码在<a target="_blank" rel="noopener" href="https://github.com/kubernetes/apiserver">apiserver</a>库中的<code>apiserver/pkg/server/</code>目录下。</p>
-<h1 id="基础知识"><a href="#基础知识" class="headerlink" title="基础知识"></a>基础知识</h1><h2 id="APIGroup"><a href="#APIGroup" class="headerlink" title="APIGroup"></a>APIGroup</h2><h2 id="go-restful"><a href="#go-restful" class="headerlink" title="go-restful"></a>go-restful</h2><p>Kubernetes使用<code>go-restful</code>这个第三方库对核心的RESTful API进行了实现，其基础知识以及在Kubernetes中的用法，可阅读这篇文章：<a href="../golang/go-restful-overview">go-restful简析</a></p>
-<h2 id="NonGoRestfulMux"><a href="#NonGoRestfulMux" class="headerlink" title="NonGoRestfulMux"></a>NonGoRestfulMux</h2><h1 id="API对象的注册"><a href="#API对象的注册" class="headerlink" title="API对象的注册"></a>API对象的注册</h1><h1 id="Handler的处理"><a href="#Handler的处理" class="headerlink" title="Handler的处理"></a>Handler的处理</h1>
+<h1 id="基础知识"><a href="#基础知识" class="headerlink" title="基础知识"></a>基础知识</h1><h2 id="APIGroupInfo"><a href="#APIGroupInfo" class="headerlink" title="APIGroupInfo"></a>APIGroupInfo</h2><p>在API对象进行注册时，都被组织成<code>APIGroupInfo</code>的结构体形式，这里面包含了所有注册需要的信息，其定义如下：</p>
+<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line"># apiserver/pkg/server/genericapiserver.<span class="keyword">go</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">type</span> APIGroupInfo <span class="keyword">struct</span> &#123;</span><br><span class="line">    PrioritizedVersions []schema.GroupVersion</span><br><span class="line"></span><br><span class="line">    <span class="comment">// Info about the resources in this group. It&#x27;s a map from version to resource to the storage.</span></span><br><span class="line">    VersionedResourcesStorageMap <span class="keyword">map</span>[<span class="keyword">string</span>]<span class="keyword">map</span>[<span class="keyword">string</span>]rest.Storage</span><br><span class="line"></span><br><span class="line">    OptionsExternalVersion *schema.GroupVersion</span><br><span class="line">    MetaGroupVersion *schema.GroupVersion</span><br><span class="line"></span><br><span class="line">    Scheme *runtime.Scheme</span><br><span class="line">    NegotiatedSerializer runtime.NegotiatedSerializer</span><br><span class="line">    ParameterCodec runtime.ParameterCodec</span><br><span class="line"></span><br><span class="line">    StaticOpenAPISpec *spec.Swagger</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>这里面最关键的信息就是<code>VersionedResourcesStorageMap</code>这个属性，如注释所说，它是一个从<code>version</code>映射到<code>resource</code>，然后再从<code>resource</code>映射到<code>rest storage</code>的两层映射，比如<code>batch</code>组中的<code>cronjobs</code>资源，有<code>v1beta1</code>和<code>v2alpha1</code>两个版本，则在该map中，则分别有两个映射，<code>v1beta1</code> -&gt; <code>cronjobs</code> -&gt; <code>cronjobs rest storage</code>，以及<code>v2alpha1</code> -&gt; <code>cronjobs</code> -&gt; <code>cronjobs rest storage</code>，这里说的<code>rest storage</code>就是之前介绍到的<code>rest store</code>，每一个版本的API对象，都会有自己的一个<code>rest store</code>，从这里就可以看到，Kubernetes对多版本是如何管理的，本质上，它把不同版本的API对象，其实当成不同的对象，有自己独立的存储。</p>
+<h2 id="go-restful"><a href="#go-restful" class="headerlink" title="go-restful"></a>go-restful</h2><p>Kubernetes使用<code>go-restful</code>这个第三方库对核心的RESTful API进行了实现，其基础知识以及在Kubernetes中的用法，可阅读这篇文章：<a target="_blank" rel="noopener" href="https://hackerain.me/2020/09/28/golang/go-restful-overview.html">go-restful简析</a>，这里不再介绍。</p>
+<h2 id="NonGoRestfulMux"><a href="#NonGoRestfulMux" class="headerlink" title="NonGoRestfulMux"></a>NonGoRestfulMux</h2><p>NonGoRestfulMux是Kubernetes APIServer中非核心API使用的RESTful框架，因为没有使用go-restful实现，因此称之为NonGoRestfulMux，其详细介绍，见<a target="_blank" rel="noopener" href="https://hackerain.me/2020/10/04/kubernetes/kube-apiserver-nongorestfulmux.html">Kubernetes APIServer NonGoRestfulMux</a>。</p>
+<h1 id="API对象的注册"><a href="#API对象的注册" class="headerlink" title="API对象的注册"></a>API对象的注册</h1><h1 id="Handler的处理"><a href="#Handler的处理" class="headerlink" title="Handler的处理"></a>Handler的处理</h1>
           </section>
         </article>
         
@@ -154,9 +158,9 @@
         <div class="pager">
           
           
-            <a class="post-next pager-item" href="/2020/09/28/golang/go-restful-overview.html">
+            <a class="post-next pager-item" href="/2020/10/04/kubernetes/kube-apiserver-nongorestfulmux.html">
               <strong class="article-nav-caption">Older</strong>
-              <p class="post-nav-title">go-restful简析</p>
+              <p class="post-nav-title">Kubernetes APIServer NonGoRestfulMux</p>
             </a>
           
         </div>
