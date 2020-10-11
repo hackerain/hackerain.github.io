@@ -8,7 +8,7 @@
 }
 
 body {
-    color: #404040;
+    color: #222;
     font:300 16px/1.5 'Helvetica Neue', Helvetica, Arial, sans-serif;
     text-shadow: 0px 0px 1px rgba(50,50,50,0.2);
     margin: 0;
@@ -221,7 +221,7 @@ nav a {
     background: #fff;
     flex: 3 1 auto;
     min-height: 320px;
-    max-width: 727.5px;
+    max-width: 900px;
     width: 100%;
     /*margin-top: 15px;*/
 }
@@ -273,7 +273,7 @@ article code,article tt{
 }
 article blockquote{
     padding: 0 15px;
-    color: #777;
+    color: #333;
     border-left: 4px solid #CBC8C8;
     margin: 0 -15px;
 }
