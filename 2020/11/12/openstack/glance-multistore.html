@@ -161,10 +161,8 @@
 <li><p>然后向该镜像记录上传镜像</p>
 </li>
 </ol>
-<p>通过<code>--backend</code>参数来指定要向哪个后端传镜像：</p>
 <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">glance image-upload --file CentOS---7.3-64bit---2017-12-11-a.dsk e80e40ea-8567-4919-83b5-632829cf530b --backend fast</span><br></pre></td></tr></table></figure>
-
-<p>其对应的API调用如下：</p>
+<p>通过<code>--backend</code>参数来指定要向哪个后端传镜像，其对应的API调用如下：</p>
 <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">curl -g -i -X PUT http:&#x2F;&#x2F;10.110.105.30:9292&#x2F;v2&#x2F;images&#x2F;e80e40ea-8567-4919-83b5-632829cf530b&#x2F;file -H &quot;Content-Type: application&#x2F;octet-stream&quot; -H &quot;User-Agent: python-glanceclient&quot; -H &quot;X-Auth-Token: &#123;SHA1&#125;3b3d90bfe99d476eef59a67725e9436b35f0853b&quot; -H &quot;x-image-meta-store: fast&quot; -d &#39;&lt;generator object _chunk_body at 0x7fb4c606b870&gt;&#39;</span><br></pre></td></tr></table></figure>
 
 <p>可以看到在Header中通过”x-image-meta-store: fast”来指定要使用fast存储后端。</p>
