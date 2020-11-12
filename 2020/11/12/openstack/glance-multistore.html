@@ -171,7 +171,11 @@
 </ol>
 <p>而对于<code>Interoperable Image Import</code>方式来说，除了可以使用Header来指定存储后端外，还可以通过POST body中的”stores”参数来同时指定多个后端一起上传，或者”all_stores”指定所有后端，并且通过”all_stores_must_succeed”参数来设置部分后端上传失败后的行为，如下：</p>
 <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">&#123;</span><br><span class="line">    &quot;method&quot;: &#123;</span><br><span class="line">        &quot;name&quot;: &quot;glance-direct&quot;</span><br><span class="line">    &#125;,</span><br><span class="line">    &quot;stores&quot;: [&quot;common&quot;, &quot;cheap&quot;, &quot;fast&quot;, &quot;reliable&quot;],</span><br><span class="line">    &quot;all_stores_must_succeed&quot;: false</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-<p>不过这些参数在U版才可用。</p>
+<p>不过这些参数在U版才可用，而且还有些Bug正在修复，使用时需要注意：</p>
+<ul>
+<li><a target="_blank" rel="noopener" href="https://bugs.launchpad.net/glance/+bug/1863879">https://bugs.launchpad.net/glance/+bug/1863879</a></li>
+</ul>
+<h3 id="总结："><a href="#总结：" class="headerlink" title="总结："></a>总结：</h3><p>在配置了Glance的多后端之后，就可以跟Cinder的多后端结合，通过boot from volume的方式，从同一个存储后端建虚拟机，volume直接从image做clone，加快了虚拟机的创建速度，也简化了镜像的管理。</p>
 <p>参考资料：</p>
 <ul>
 <li><a target="_blank" rel="noopener" href="https://docs.openstack.org/glance/ussuri/admin/multistores.html">https://docs.openstack.org/glance/ussuri/admin/multistores.html</a></li>
