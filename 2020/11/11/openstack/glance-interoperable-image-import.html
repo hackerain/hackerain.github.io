@@ -181,6 +181,9 @@
 <p>我们以glance-direct方式为例，来看下怎么使用：</p>
 <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">glance image-create --disk-format raw --container-format bare --visibility public --name testfast</span><br><span class="line">glance image-stage --file CentOS---7.3-64bit---2017-12-11-a.dsk f456c8a6-23f6-42a4-85df-507fcb3abe34</span><br><span class="line">glance image-import --backend fast f456c8a6-23f6-42a4-85df-507fcb3abe34</span><br></pre></td></tr></table></figure>
 <p>先通过image-create命令建一个镜像记录，拿到image id，然后通过image-stage命令将镜像传到<code>staging area</code>，再然后通过image-import命令将<code>staging area</code>中的镜像异步传输到后端存储中。</p>
+<p>以上也可以合并成一条命令：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">glance image-create-via-import --disk-format raw --container-format bare --visibility public --name testfast --file CentOS---7.3-64bit---2017-12-11-a.dsk</span><br></pre></td></tr></table></figure>
+
 <p>这个<code>staging area</code>通过下面的配置项配置：</p>
 <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">[os_glance_staging_store]</span><br><span class="line">filesystem_store_datadir &#x3D; &#x2F;var&#x2F;lib&#x2F;glance&#x2F;staging</span><br></pre></td></tr></table></figure>
 <p>需要注意的是，如果需要起多个glance-api做高可用的话，那么这个目录得是一个在多个节点之间共享的目录，否则可能会报找不到镜像的错误。</p>
