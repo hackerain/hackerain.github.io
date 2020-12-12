@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+          <head>
+        <meta charset="utf-8">
+            
+            <title>
+                Kubernetes Informer机制解析 | 开心鬼
+            </title>
+            <meta content="width=device-width, initial-scale=1" name="viewport">
+            <meta name="theme-color" content="#4184f3">
+            
+            
+            <link href="/favicon.ico" rel="icon"/>
+            
+
+            
+<link rel="stylesheet" href="/css/highlight.light.css">
+
+            
+<link rel="stylesheet" href="/css/prism-customize.css">
+
+            
+<link rel="stylesheet" href="/css/nav-icon.css">
+
+            
+<link rel="stylesheet" href="/css/waves.min.css">
+
+            
+<link rel="stylesheet" href="/css/jquery.tocify.css">
+
+            
+<link rel="stylesheet" href="/css/main.css">
+
+            
+<link rel="stylesheet" href="/css/nav-indicator.css">
+
+            
+  
+  <!-- 百度统计 -->
+  <script>
+  var _hmt = _hmt || [];
+  (function() {
+    var hm = document.createElement("script");
+    hm.src = "//hm.baidu.com/hm.js?52c2063ad58df7e49e95e3ed44358e2c";
+    var s = document.getElementsByTagName("script")[0];
+    s.parentNode.insertBefore(hm, s);
+  })();
+  </script>
+  
+
+  
+            </meta>
+        </meta>
+    <meta name="generator" content="Hexo 5.1.1"></head>
+
+    <body>
+        <header>
+            <!-- cover image or sth. -->
+        </header>
+        <div id="main" class="m-scene">
+            
+<div class="nav-wrapper">
+
+    <div class="container">
+        <nav>
+            <div class="logo wave">
+                <a href="/" id="logo">
+                    开心鬼
+                </a>
+            </div>
+            <div class="nav-toggle-icon" >
+                <div class="material-hamburger">
+                    <span>
+                    </span>
+                    <span>
+                    </span>
+                    <span>
+                    </span>
+                </div>
+            </div>
+            <div class="menu-wrapper">
+                <div class="nav-indicator">
+                </div>
+                <ul class="menus">
+                    
+                     
+                        <li>
+                            <a class="wave " href="/">
+                                Home
+                            </a>
+                        </li>
+                     
+                        <li>
+                            <a class="wave " href="/archives">
+                                Archive
+                            </a>
+                        </li>
+                     
+                        <li>
+                            <a class="wave " href="/about">
+                                About
+                            </a>
+                        </li>
+                     
+                        <li>
+                            <a class="wave no-smoothstate" href="/atom.xml">
+                                RSS
+                            </a>
+                        </li>
+                     
+                    
+                   
+                </ul>
+            </div>
+        </nav>
+    </div>
+</div>
+            <div class="container content">
+                <div class="scene_element scene_element--fadein">
+                    <div class="row">
+    <div class="main">
+        <article>
+          
+          <header class="post-header">
+          
+          </header>
+          <h1 class="post-title">Kubernetes Informer机制解析</h1>
+
+          <section class="post-info">
+            <span class="post-date">2020/12/11</span>
+            
+            
+            <span class="post-tags">
+              <ul class="post-tag-list" itemprop="keywords"><li class="post-tag-list-item"><a class="post-tag-list-link" href="/tags/kubernetes/" rel="tag">kubernetes</a></li></ul>
+            </span>
+            
+          </section>
+
+          <section class="post-content">
+            <p>Kubernetes的控制器模式是其非常重要的一个设计模式，整个Kubernetes定义的资源对象以及其状态都保存在etcd数据库中，通过apiserver对其进行增删查改，而各种各样的控制器需要从apiserver及时获取这些对象以及其当前定义的状态，然后将其应用到实际中，即将这些对象的实际状态调整为期望状态，让他们保持匹配。因此各种控制器需要和apiserver进行频繁交互，需要能够及时获取对象状态的变化，而如果简单的通过暴力轮询的话，会给apiserver造成很大的压力，且效率很低，因此，Kubernetes设计了Informer这个机制，用来作为控制器跟apiserver交互的桥梁，它主要有两方面的作用：</p>
+<ol>
+<li>依赖Etcd的List&amp;Watch机制，在本地维护了一份<code>所关心的API对象</code>的缓存。Etcd的Watch机制能够使客户端及时获知这些对象的状态变化，然后更新本地缓存，这样就在客户端为这些API对象维护了一份和Etcd数据库中几乎一致的数据，然后控制器等客户端就可以直接访问缓存获取对象的信息，而不用去直接访问apiserver，这一方面显著提高了性能，另一方面则大大降低了对apiserver的访问压力；</li>
+<li>依赖Etcd的Watch机制，触发控制器等客户端注册到Informer中的事件方法。客户端可能会某些对象的某些事件感兴趣，当这些事件发生时，希望能够执行某些操作，比如通过apiserver新建了一个pod，那么kube-scheduler中的控制器收到了这个事件，然后将这个pod加入到其队列中，等待进行调度。</li>
+</ol>
+<p>Kubernetes的各个组件本身就内置了非常多的控制器，而自定义的控制器也需要通过Informer跟apiserver进行交互，因此，Informer在Kubernetes中应用非常广泛，出镜率很高，本篇文章就重点分析下Informer的机制原理，以加深对其的理解。</p>
+<h1 id="使用方法"><a href="#使用方法" class="headerlink" title="使用方法"></a>使用方法</h1><p>先来看看Informer是怎么用的，以Deployment控制器为例，来看下其使用Informer的相关代码：</p>
+<h5 id="1-创建Informer工厂"><a href="#1-创建Informer工厂" class="headerlink" title="1. 创建Informer工厂"></a>1. 创建Informer工厂</h5><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"># kubernetes/cmd/kube-controller-manager/app/controllermanager.<span class="keyword">go</span></span><br><span class="line"></span><br><span class="line">sharedInformers := informers.NewSharedInformerFactory(versionedClient, ResyncPeriod(s)())</span><br></pre></td></tr></table></figure>
+<p>首先创建了一个<code>SharedInformerFactory</code>，这个结构主要有两个作用：一个是用来作为创建Informer的工厂；一个是共享Informer，所谓共享，就是多个Controller可以共用同一个Informer，因为不同的Controller可能对同一种API对象感兴趣，这样相同的API对象，缓存就只有一份，通知机制也只有一套，大大提高了效率，减少了资源浪费。</p>
+<h5 id="2-创建对象Informer结构体"><a href="#2-创建对象Informer结构体" class="headerlink" title="2. 创建对象Informer结构体"></a>2. 创建对象Informer结构体</h5><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"># kubernetes/cmd/kube-controller-manager/app/apps.<span class="keyword">go</span></span><br><span class="line"></span><br><span class="line">dc, err := deployment.NewDeploymentController(</span><br><span class="line">    ctx.InformerFactory.Apps().V1().Deployments(),</span><br><span class="line">    ctx.InformerFactory.Apps().V1().ReplicaSets(),</span><br><span class="line">    ctx.InformerFactory.Core().V1().Pods(),</span><br><span class="line">    ctx.ClientBuilder.ClientOrDie(<span class="string">&quot;deployment-controller&quot;</span>),</span><br><span class="line">)</span><br></pre></td></tr></table></figure>
+<p>使用InformerFactory创建出对应版本的对象的Informer结构体，如Deployment对象对应的就是<code>deploymentInformer</code>结构体，该结构体实现了两个方法：<code>Informer()</code>和<code>Lister()</code>，前者用来构建出最终的Informer，即我们本篇文章的重点：<code>SharedIndexInformer</code>，后者用来获取创建出来的Informer的缓存接口：<code>Indexer</code>，该接口可以用来查询缓存的数据。Deployment Controller关心的API对象为<code>Deployment</code>, <code>ReplicaSet</code>, <code>Pod</code>，分别为这三种API对象创建了Informer。</p>
+<h5 id="3-注册事件方法"><a href="#3-注册事件方法" class="headerlink" title="3. 注册事件方法"></a>3. 注册事件方法</h5><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line"># kubernetes/pkg/controller/deployment/deployment_controller.<span class="keyword">go</span></span><br><span class="line"></span><br><span class="line">dInformer.Informer().AddEventHandler(cache.ResourceEventHandlerFuncs&#123;</span><br><span class="line">    AddFunc:    dc.addDeployment,</span><br><span class="line">    UpdateFunc: dc.updateDeployment,</span><br><span class="line">    <span class="comment">// This will enter the sync loop and no-op, because the deployment has been deleted from the store.</span></span><br><span class="line">    DeleteFunc: dc.deleteDeployment,</span><br><span class="line">&#125;)</span><br><span class="line">rsInformer.Informer().AddEventHandler(cache.ResourceEventHandlerFuncs&#123;</span><br><span class="line">    AddFunc:    dc.addReplicaSet,</span><br><span class="line">    UpdateFunc: dc.updateReplicaSet,</span><br><span class="line">    DeleteFunc: dc.deleteReplicaSet,</span><br><span class="line">&#125;)</span><br><span class="line">podInformer.Informer().AddEventHandler(cache.ResourceEventHandlerFuncs&#123;</span><br><span class="line">    DeleteFunc: dc.deletePod,</span><br><span class="line">&#125;)</span><br><span class="line"></span><br><span class="line">dc.dLister = dInformer.Lister()</span><br><span class="line">dc.rsLister = rsInformer.Lister()</span><br><span class="line">dc.podLister = podInformer.Lister()</span><br></pre></td></tr></table></figure>
+<p>这里，调用<code>Infomer()</code>创建出来<code>SharedIndexInformer</code>，然后向其中注册事件方法，这样当有对应的事件发生时，就会触发这里注册的方法去做相应的事情。调用<code>Lister()</code>获取到缓存接口，就可以通过它来查询Informer中缓存的数据了，而且Informer中缓存的数据，是可以有索引的，这样可以加快查询的速度。</p>
+<h5 id="4-启动Informer"><a href="#4-启动Informer" class="headerlink" title="4. 启动Informer"></a>4. 启动Informer</h5><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"># kubernetes/cmd/kube-controller-manager/app/controllermanager.<span class="keyword">go</span></span><br><span class="line"></span><br><span class="line">controllerContext.InformerFactory.Start(controllerContext.Stop)</span><br></pre></td></tr></table></figure>
+
+<p>这里InformerFactory的启动，会遍历Factory中的所有Informer，依次将其启动。</p>
+<h1 id="机制解析"><a href="#机制解析" class="headerlink" title="机制解析"></a>机制解析</h1><p>Informer的实现都是在<code>client-go</code>这个库中，通过上述的工厂方法，其实最终创建出来的是一个叫做<code>SharedIndexInformer</code>的结构体：</p>
+<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br></pre></td><td class="code"><pre><span class="line"># k8s.io/client-<span class="keyword">go</span>/tools/cache/shared_informer.<span class="keyword">go</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">type</span> sharedIndexInformer <span class="keyword">struct</span> &#123;</span><br><span class="line">    indexer    Indexer</span><br><span class="line">    controller Controller</span><br><span class="line"></span><br><span class="line">    processor             *sharedProcessor</span><br><span class="line">    cacheMutationDetector MutationDetector</span><br><span class="line"></span><br><span class="line">    listerWatcher ListerWatcher</span><br><span class="line">    ......</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">NewSharedIndexInformer</span><span class="params">(lw ListerWatcher, exampleObject runtime.Object, defaultEventHandlerResyncPeriod time.Duration, indexers Indexers)</span> <span class="title">SharedIndexInformer</span></span> &#123;</span><br><span class="line">    realClock := &amp;clock.RealClock&#123;&#125;</span><br><span class="line">    sharedIndexInformer := &amp;sharedIndexInformer&#123;</span><br><span class="line">        processor:                       &amp;sharedProcessor&#123;clock: realClock&#125;,</span><br><span class="line">        indexer:                         NewIndexer(DeletionHandlingMetaNamespaceKeyFunc, indexers),</span><br><span class="line">        listerWatcher:                   lw,</span><br><span class="line">        objectType:                      exampleObject,</span><br><span class="line">        resyncCheckPeriod:               defaultEventHandlerResyncPeriod,</span><br><span class="line">        defaultEventHandlerResyncPeriod: defaultEventHandlerResyncPeriod,</span><br><span class="line">        cacheMutationDetector:           NewCacheMutationDetector(fmt.Sprintf(<span class="string">&quot;%T&quot;</span>, exampleObject)),</span><br><span class="line">        clock:                           realClock,</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> sharedIndexInformer</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>可以看到，在创建<code>SharedIndexInformer</code>时，就创建出了processor, indexer等结构，而在Informer启动时，还创建出了controller, fifo queue等结构：</p>
+<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br></pre></td><td class="code"><pre><span class="line"># k8s.io/client-<span class="keyword">go</span>/tools/cache/shared_informer.<span class="keyword">go</span></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(s *sharedIndexInformer)</span> <span class="title">Run</span><span class="params">(stopCh &lt;-<span class="keyword">chan</span> <span class="keyword">struct</span>&#123;&#125;)</span></span> &#123;</span><br><span class="line">	<span class="keyword">defer</span> utilruntime.HandleCrash()</span><br><span class="line"></span><br><span class="line">	fifo := NewDeltaFIFOWithOptions(DeltaFIFOOptions&#123;</span><br><span class="line">		KnownObjects:          s.indexer,</span><br><span class="line">		EmitDeltaTypeReplaced: <span class="literal">true</span>,</span><br><span class="line">	&#125;)</span><br><span class="line"></span><br><span class="line">	cfg := &amp;Config&#123;</span><br><span class="line">		Queue:            fifo,</span><br><span class="line">		ListerWatcher:    s.listerWatcher,</span><br><span class="line">		ObjectType:       s.objectType,</span><br><span class="line">		FullResyncPeriod: s.resyncCheckPeriod,</span><br><span class="line">		RetryOnError:     <span class="literal">false</span>,</span><br><span class="line">		ShouldResync:     s.processor.shouldResync,</span><br><span class="line"></span><br><span class="line">		Process:           s.HandleDeltas,</span><br><span class="line">		WatchErrorHandler: s.watchErrorHandler,</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	<span class="function"><span class="keyword">func</span><span class="params">()</span></span> &#123;</span><br><span class="line">		s.startedLock.Lock()</span><br><span class="line">		<span class="keyword">defer</span> s.startedLock.Unlock()</span><br><span class="line"></span><br><span class="line">		s.controller = New(cfg)</span><br><span class="line">		s.controller.(*controller).clock = s.clock</span><br><span class="line">		s.started = <span class="literal">true</span></span><br><span class="line">	&#125;()</span><br><span class="line"></span><br><span class="line">	<span class="comment">// Separate stop channel because Processor should be stopped strictly after controller</span></span><br><span class="line">	processorStopCh := <span class="built_in">make</span>(<span class="keyword">chan</span> <span class="keyword">struct</span>&#123;&#125;)</span><br><span class="line">	<span class="keyword">var</span> wg wait.Group</span><br><span class="line">	<span class="keyword">defer</span> wg.Wait()              <span class="comment">// Wait for Processor to stop</span></span><br><span class="line">	<span class="keyword">defer</span> <span class="built_in">close</span>(processorStopCh) <span class="comment">// Tell Processor to stop</span></span><br><span class="line">	wg.StartWithChannel(processorStopCh, s.cacheMutationDetector.Run)</span><br><span class="line">	wg.StartWithChannel(processorStopCh, s.processor.run)</span><br><span class="line"></span><br><span class="line">	<span class="keyword">defer</span> <span class="function"><span class="keyword">func</span><span class="params">()</span></span> &#123;</span><br><span class="line">		s.startedLock.Lock()</span><br><span class="line">		<span class="keyword">defer</span> s.startedLock.Unlock()</span><br><span class="line">		s.stopped = <span class="literal">true</span> <span class="comment">// Don&#x27;t want any new listeners</span></span><br><span class="line">	&#125;()</span><br><span class="line">	s.controller.Run(stopCh)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>而在controller启动中，又创建了Reflector结构体：</p>
+<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br></pre></td><td class="code"><pre><span class="line"># k8s.io/client-<span class="keyword">go</span>/tools/cache/controller.<span class="keyword">go</span></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(c *controller)</span> <span class="title">Run</span><span class="params">(stopCh &lt;-<span class="keyword">chan</span> <span class="keyword">struct</span>&#123;&#125;)</span></span> &#123;</span><br><span class="line">	<span class="keyword">defer</span> utilruntime.HandleCrash()</span><br><span class="line">	<span class="keyword">go</span> <span class="function"><span class="keyword">func</span><span class="params">()</span></span> &#123;</span><br><span class="line">		&lt;-stopCh</span><br><span class="line">		c.config.Queue.Close()</span><br><span class="line">	&#125;()</span><br><span class="line">	r := NewReflector(</span><br><span class="line">		c.config.ListerWatcher,</span><br><span class="line">		c.config.ObjectType,</span><br><span class="line">		c.config.Queue,</span><br><span class="line">		c.config.FullResyncPeriod,</span><br><span class="line">	)</span><br><span class="line">	r.ShouldResync = c.config.ShouldResync</span><br><span class="line">	r.clock = c.clock</span><br><span class="line">	<span class="keyword">if</span> c.config.WatchErrorHandler != <span class="literal">nil</span> &#123;</span><br><span class="line">		r.watchErrorHandler = c.config.WatchErrorHandler</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	c.reflectorMutex.Lock()</span><br><span class="line">	c.reflector = r</span><br><span class="line">	c.reflectorMutex.Unlock()</span><br><span class="line"></span><br><span class="line">	<span class="keyword">var</span> wg wait.Group</span><br><span class="line">	<span class="keyword">defer</span> wg.Wait()</span><br><span class="line"></span><br><span class="line">	wg.StartWithChannel(stopCh, r.Run)</span><br><span class="line"></span><br><span class="line">	wait.Until(c.processLoop, time.Second, stopCh)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>这些结构之间的关系如下图所示：</p>
+<p><img src="/assets/kubernetes_informer.png"></p>
+<h5 id="Reflector"><a href="#Reflector" class="headerlink" title="Reflector"></a>Reflector</h5><h5 id="Controller"><a href="#Controller" class="headerlink" title="Controller"></a>Controller</h5><h5 id="Processer-amp-Listener"><a href="#Processer-amp-Listener" class="headerlink" title="Processer &amp; Listener"></a>Processer &amp; Listener</h5><h5 id="Indexer"><a href="#Indexer" class="headerlink" title="Indexer"></a>Indexer</h5>
+          </section>
+        </article>
+        
+
+       
+        <div class="pager">
+          
+          
+            <a class="post-next pager-item" href="/2020/11/12/openstack/glance-multistore.html">
+              <strong class="article-nav-caption">Older</strong>
+              <p class="post-nav-title">Glance多后端功能介绍</p>
+            </a>
+          
+        </div>
+        
+
+         <!-- comments -->
+        <div class="comment-section">
+  
+    
+    
+<link rel="stylesheet" href="/css/gitalk.css">
+
+    
+<script src="/lib/gitalk.min.js"></script>
+
+    <div id="gitalk-container"></div>
+    <script>
+      const gitalk = new Gitalk({
+        clientID: '54c13c09b0079cbb2386',
+        clientSecret: 'a4b61935040bb6a0ef0764889b6283a21fba00dd',
+        repo: 'hackerain.github.io',
+        owner: 'hackerain',
+        admin: ['hackerain'],
+        id: location.pathname.substr(11,30)+":"+location.pathname.split("").reduce(function(a,b){a=((a<<5)-a)+b.charCodeAt(0);return a&a},0),
+        distractionFreeMode: true
+      })
+      gitalk.render('gitalk-container')
+    </script>
+  
+
+
+</div>
+
+
+    </div>
+    
+</div>
+
+                </div>
+            </div>
+        </div>
+        <footer class="footer">
+    <p>由<a href="http://hexo.io/" target="_blank">Hexo</a>强力驱动，搭载<a target="_blank" rel="noopener" href="https://github.com/wayou/hexo-theme-gstyle">gstyle</a>主题</p>
+    <p>
+        &copy; 2020 hackerain
+    </p>
+</footer>
+
+<script src="/lib/jquery.js"></script>
+
+
+<script src="/lib/waves.js"></script>
+
+
+<script src="/lib/jquery-ui.js"></script>
+
+
+<script src="/lib/jquery.tocify.js"></script>
+
+
+<script src="/js/main.js"></script>
+
+
+    </body>
+</html>
