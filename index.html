@@ -121,6 +121,41 @@
 
   
     <article>
+      <a href="/2020/12/19/kubernetes/kube-scheduler-overview.html" >
+        
+          <header class="post-header">
+        
+          <h2 class="post-title">
+            <!-- <a href="/2020/12/19/kubernetes/kube-scheduler-overview.html" title="Kubernetes Scheduler机制概览" >Kubernetes Scheduler机制概览</a> -->
+            <span>Kubernetes Scheduler机制概览</span>
+          </h2>
+        </header>
+      </a>
+
+       <section class="post-info">
+        <span class="post-date">2020/12/19</span>
+          
+          
+          <span class="post-tags">
+            <ul class="post-tag-list" itemprop="keywords"><li class="post-tag-list-item"><a class="post-tag-list-link" href="/tags/kubernetes/" rel="tag">kubernetes</a></li></ul>
+          </span>
+          
+        <!-- <span class="read-more btn"><a href="/2020/12/19/kubernetes/kube-scheduler-overview.html" >More...</a></span> -->
+      </section>
+
+      <section class="post-abstract">
+        
+          
+在 Kubernetes 项目中，默认调度器的主要职责，就是为一个新创建出来的 Pod，寻找一个最合适的节点（Node）。
+而这里“最合适”的含义，包括两层：
+
+从集群所有的节点中，根据调度算法挑选出所有可以运行该 Pod ...
+        
+      </section>
+      
+    </article>
+  
+    <article>
       <a href="/2020/12/11/kubernetes/kube-clientgo-informer.html" >
         
           <header class="post-header">
@@ -401,41 +436,10 @@
       
     </article>
   
-    <article>
-      <a href="/2020/09/19/kubernetes/kube-apiserver-storage-overview.html" >
-        
-          <header class="post-header">
-        
-          <h2 class="post-title">
-            <!-- <a href="/2020/09/19/kubernetes/kube-apiserver-storage-overview.html" title="Kubernetes APIServer Storage 框架解析" >Kubernetes APIServer Storage 框架解析</a> -->
-            <span>Kubernetes APIServer Storage 框架解析</span>
-          </h2>
-        </header>
-      </a>
-
-       <section class="post-info">
-        <span class="post-date">2020/09/19</span>
-          
-          
-          <span class="post-tags">
-            <ul class="post-tag-list" itemprop="keywords"><li class="post-tag-list-item"><a class="post-tag-list-link" href="/tags/kubernetes/" rel="tag">kubernetes</a></li></ul>
-          </span>
-          
-        <!-- <span class="read-more btn"><a href="/2020/09/19/kubernetes/kube-apiserver-storage-overview.html" >More...</a></span> -->
-      </section>
-
-      <section class="post-abstract">
-        
-          Kubernetes使用etcd作为后端存储，etcd是一个分布式的，高可靠性的键值存储系统，跟传统的平台系统不同，Kubernetes把所有的数据都存储到了kv数据库中，而没有像OpenStack一样使用像MySQL这种关系...
-        
-      </section>
-      
-    </article>
-  
   
   
     <div class="pagination">
-      <span class="page-number current">1</span><a class="page-number" href="/page/2/">2</a><a class="page-number" href="/page/3/">3</a><a class="extend next" rel="next" href="/page/2/">Next</a>
+      <span class="page-number current">1</span><a class="page-number" href="/page/2/">2</a><a class="page-number" href="/page/3/">3</a><a class="page-number" href="/page/4/">4</a><a class="extend next" rel="next" href="/page/2/">Next</a>
     </div>
   
 
@@ -464,6 +468,10 @@
       <ul>
         
           <li>
+            <a href="/2020/12/19/kubernetes/kube-scheduler-overview.html">Kubernetes Scheduler机制概览</a>
+          </li>
+        
+          <li>
             <a href="/2020/12/11/kubernetes/kube-clientgo-informer.html">Kubernetes Informer机制解析</a>
           </li>
         
@@ -477,10 +485,6 @@
         
           <li>
             <a href="/2020/11/09/openstack/keystone-fernet-token.html">Keystone Fernet Token解析</a>
-          </li>
-        
-          <li>
-            <a href="/2020/10/08/kubernetes/kube-apiserver-extensions.html">Kubernetes APIServer扩展机制原理</a>
           </li>
         
       </ul>

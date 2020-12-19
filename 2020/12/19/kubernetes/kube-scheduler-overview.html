@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+          <head>
+        <meta charset="utf-8">
+            
+            <title>
+                Kubernetes Scheduler机制概览 | 开心鬼
+            </title>
+            <meta content="width=device-width, initial-scale=1" name="viewport">
+            <meta name="theme-color" content="#4184f3">
+            
+            
+            <link href="/favicon.ico" rel="icon"/>
+            
+
+            
+<link rel="stylesheet" href="/css/highlight.light.css">
+
+            
+<link rel="stylesheet" href="/css/prism-customize.css">
+
+            
+<link rel="stylesheet" href="/css/nav-icon.css">
+
+            
+<link rel="stylesheet" href="/css/waves.min.css">
+
+            
+<link rel="stylesheet" href="/css/jquery.tocify.css">
+
+            
+<link rel="stylesheet" href="/css/main.css">
+
+            
+<link rel="stylesheet" href="/css/nav-indicator.css">
+
+            
+  
+  <!-- 百度统计 -->
+  <script>
+  var _hmt = _hmt || [];
+  (function() {
+    var hm = document.createElement("script");
+    hm.src = "//hm.baidu.com/hm.js?52c2063ad58df7e49e95e3ed44358e2c";
+    var s = document.getElementsByTagName("script")[0];
+    s.parentNode.insertBefore(hm, s);
+  })();
+  </script>
+  
+
+  
+            </meta>
+        </meta>
+    <meta name="generator" content="Hexo 5.1.1"></head>
+
+    <body>
+        <header>
+            <!-- cover image or sth. -->
+        </header>
+        <div id="main" class="m-scene">
+            
+<div class="nav-wrapper">
+
+    <div class="container">
+        <nav>
+            <div class="logo wave">
+                <a href="/" id="logo">
+                    开心鬼
+                </a>
+            </div>
+            <div class="nav-toggle-icon" >
+                <div class="material-hamburger">
+                    <span>
+                    </span>
+                    <span>
+                    </span>
+                    <span>
+                    </span>
+                </div>
+            </div>
+            <div class="menu-wrapper">
+                <div class="nav-indicator">
+                </div>
+                <ul class="menus">
+                    
+                     
+                        <li>
+                            <a class="wave " href="/">
+                                Home
+                            </a>
+                        </li>
+                     
+                        <li>
+                            <a class="wave " href="/archives">
+                                Archive
+                            </a>
+                        </li>
+                     
+                        <li>
+                            <a class="wave " href="/about">
+                                About
+                            </a>
+                        </li>
+                     
+                        <li>
+                            <a class="wave no-smoothstate" href="/atom.xml">
+                                RSS
+                            </a>
+                        </li>
+                     
+                    
+                   
+                </ul>
+            </div>
+        </nav>
+    </div>
+</div>
+            <div class="container content">
+                <div class="scene_element scene_element--fadein">
+                    <div class="row">
+    <div class="main">
+        <article>
+          
+          <header class="post-header">
+          
+          </header>
+          <h1 class="post-title">Kubernetes Scheduler机制概览</h1>
+
+          <section class="post-info">
+            <span class="post-date">2020/12/19</span>
+            
+            
+            <span class="post-tags">
+              <ul class="post-tag-list" itemprop="keywords"><li class="post-tag-list-item"><a class="post-tag-list-link" href="/tags/kubernetes/" rel="tag">kubernetes</a></li></ul>
+            </span>
+            
+          </section>
+
+          <section class="post-content">
+            <blockquote>
+<p>在 Kubernetes 项目中，默认调度器的主要职责，就是为一个新创建出来的 Pod，寻找一个最合适的节点（Node）。</p>
+<p>而这里“最合适”的含义，包括两层：</p>
+<ol>
+<li>从集群所有的节点中，根据调度算法挑选出所有可以运行该 Pod 的节点；</li>
+<li>从第一步的结果中，再根据调度算法挑选一个最符合条件的节点作为最终结果。</li>
+</ol>
+<p>所以在具体的调度流程中，默认调度器会首先调用一组叫作 Predicate 的调度算法，来检查每个 Node。然后，再调用一组叫作 Priority 的调度算法，来给上一步得到的结果里的每个 Node 打分。最终的调度结果，就是得分最高的那个 Node。</p>
+</blockquote>
+<p>以上文字来自于极客时间，张磊老师的《<a target="_blank" rel="noopener" href="https://time.geekbang.org/column/intro/116">深入剖析Kubernetes</a>》课程中的《<a target="_blank" rel="noopener" href="https://time.geekbang.org/column/article/69890">十字路口上的Kubernetes默认调度器</a>》这一章节，我觉得总结的相当到位，对我这个万事开头难来说，实在难以写出比这更精辟的开头了，就直接拿来主义了:-)</p>
+<p>不过最近两年Scheduler做了不少的改进，尤其是为了让其有更好的扩展性，以及更好的维护，而重构的称之为<a target="_blank" rel="noopener" href="https://github.com/kubernetes/enhancements/blob/master/keps/sig-scheduling/624-scheduling-framework/README.md">Scheduling Framework</a>的调度框架，已经淡化了以前<code>Predicate &amp; Priority</code>的概念，还有webhook方式的扩展机制<a target="_blank" rel="noopener" href="https://github.com/kubernetes/community/blob/master/contributors/design-proposals/scheduling/scheduler_extender.md">Scheduler Extender</a>，取而代之的是<code>Plugins以及Extension Points</code>，即通过在各个预定义的扩展点，插入Plugin的方式，扩展Scheduler的功能，核心的调度算法逻辑，也都放到了Plugin中，如果默认的调度器中的Plugin不能满足需求，可以自己写插件，但是要重新编译代码。</p>
+<p>此外，还有两个重量级组件，就是优先级队列和缓存（PriorityQueue and Cache），优先级队列保障Pod的调度顺序，结合上面的插件机制，用户是可以自定义优先级算法的，而缓存则主要是为了优化调度的性能而引入的，它缓存的主要是Pod和Node的信息，调度器的性能优化，也经历了一个很漫长的进化过程。</p>
+<p>好了，下面来看下Kubernetes Scheduler在我脑海中的画像：</p>
+<p><img src="/assets/kubernetes_scheduler.png" alt="kubernetes_scheduler"></p>
+<h4 id="Informer"><a href="#Informer" class="headerlink" title="Informer"></a>Informer</h4><p>首先就是Informer了，关于Informer这里就不做过多介绍了，可以看下这篇文章《<a target="_blank" rel="noopener" href="https://hackerain.me/2020/12/11/kubernetes/kube-clientgo-informer.html">Kubernetes Informer机制解析</a>》，介绍的比较详细。Scheduler中的Informer是一切事件的来源，它监听了很多对象的状态，但是其中主要是Pod和Node，Pod的事件又分为两种：</p>
+<ol>
+<li>当没有调度成功的pod发生增删改事件时，该pod就会被放入到优先级调度队列中。</li>
+<li>当已经调度成功的pod发生增删改事件时，该pod就会被对应的更新到缓存中。</li>
+</ol>
+<p>而当有Node的增删改事件时，会将其信息更新到缓存中，以提高调度的速度。</p>
+<p>所以，一句话总结这里的过程：未被调度的pod放到了优先级调度队列中，而已经调度的pod和node，则更新至缓存中。</p>
+<h4 id="PriorityQueue"><a href="#PriorityQueue" class="headerlink" title="PriorityQueue"></a>PriorityQueue</h4><p>这里所谓的PriorityQueue其实是由三个队列组成的：</p>
+<ul>
+<li>activeQ: 用来存放将要进行调度的pod，底层数据结构是用”堆”来实现的优先级队列；</li>
+<li>unschedulableQ: 用来存放调度失败的pod，底层数据结构是一个map；</li>
+<li>podBackoffQ: 用来作为activeQ和unschedulableQ之间的一个缓冲队列，也是一个用“堆”实现的优先级队列</li>
+</ul>
+<p>首先是优先级的问题，Kubernetes中实现了一个<a target="_blank" rel="noopener" href="https://kubernetes.io/docs/concepts/configuration/pod-priority-preemption/">Pod Priority</a>的功能，可以给pod关联一个PriorityClass，指定一个权重值，权重越高，则该pod的优先级越高，在优先级队列中会越往前排，它就越会被优先调度。此处的队列，指的就是activeQ，它是一个用“<a target="_blank" rel="noopener" href="https://www.jianshu.com/p/6b526aa481b1">堆</a>”这个数据结构来实现的优先级队列，堆的排序算法，是可以通过FrameWork的插件机制来指定的，默认的排序插件就是按照pod的权重值来排序，如果没有指定权重值的话，则按照pod加入到队列中的时间戳来排序，也即退化成一个FIFO队列。</p>
+<p>消费者从activeQ中取走一个pod进行调度，如果调度失败的话，则会将该pod放入到unschedulableQ中，而unschedulableQ中的pod又会周期性的被移到activeQ或者podBackoffQ中，等待重新被调度。</p>
+<p>而podBackoffQ的存在，主要是为了解决优先级调度算法中存在的”无穷阻塞”或者是”饥饿”问题，即由于高优先级的pod总是被优先调度，而低优先级的pod一直得不到调度的问题。podBackoffQ也是一个优先级队列，不过它的排序算法就不是按照pod的权重值了，而是按照pod加入到unschedulableQ中的时间长短来排序的，即该pod等待被调度的时间越长，则在podBackoffQ中越排在前面，这样就防止了“无穷阻塞”的问题。Scheduler周期性的将超过了backoff时间的pod，从podBackoffQ移动到activeQ，进行再次调度。</p>
+<p>可以看到这三个Queue互相配合，完美实现了优先级调度的功能。</p>
+<h4 id="Cache"><a href="#Cache" class="headerlink" title="Cache"></a>Cache</h4><p>Cache在这里的作用，主要是为了加速调度过程中查询pod和node等信息的速度，了解Informer机制的话，不免有个疑问，就是Informer其实已经在本地缓存了一份数据了，而这里为什么还要再添加一层缓存呢？其实在没有cache之前，确实是直接通过Informer获取的信息，但是Informer中缓存的数据相当于是原始数据，在调度过程中，还需要根据原始数据再实时计算出一些数据，比如该node上所有pod的request之和，或者是该node分配出去的端口号，这种实时计算的，就需要遍历一遍这个Node上所有的pod或者是container，这就会很耗费时间了，在规模环境比较大，pod数量比较多的场景下，这些还是很影响调度性能的。所以一种优化策略，就是再引入一层缓存，依赖informer的事件机制，提前在本地缓存好聚合之后的数据，这样在调度的时候，就不用再实时去计算了，时间复杂度也就从O(containers)变为了O(nodes)。</p>
+<p>当然，这付出的代价，就是代码复杂度又变高了，该缓存的正确与否，直接影响了调度的准确性，后续为了保持调度时的一致性，又引入了snapshot机制，即每次调度pod时，都要给当前的缓存打一个快照，因为如果直接依赖缓存的话，它的数据可能随时会变化，尤其是在node和pod频繁变更时，因此通过打快照，调度前后都使用快照中的数据，保证了调度的一致性。</p>
+<p>针对Cache的优化，社区经历了一个比较漫长的演进过程，这里面有一些很奇怪的数据结构，不了解背景的话，还真的难以理解，后面我们专门有一篇文章来盘点下那些年为提升调度性能而做的优化。</p>
+<h4 id="Scheduling-Framework"><a href="#Scheduling-Framework" class="headerlink" title="Scheduling Framework"></a>Scheduling Framework</h4><p>这个算是Scheduler中的重头戏了，前面已经介绍过，它主要的特点是将调度的过程，定义了几个扩展点，每个扩展点都可以注册一些插件，通过插件的方式来实现具体的调度算法，Kubernetes Scheduler中默认的调度算法，都是通过插件来实现的。整个调度过程分为两部分：<code>Scheduling Cycle</code>和<code>Binding Cycle</code>。前者是为pod找最合适node的过程，后者是将该pod和node进行绑定的过程。</p>
+<ul>
+<li>Scheduling Cycle的扩展点：PreFilter, Filter, PreScore, Score, Reserve, UnReserve, Permit</li>
+<li>Binding Cycle的扩展点：PreBind, Bind, PostBind</li>
+</ul>
+<p>Scheduling阶段中，Filter是用来过滤符合调度条件的node的；Score则是来给符合条件的node进行打分，从中选择一个最合适的node；Reserve则是为该pod保留资源的，比如volume；Permit是Scheduling阶段最后的步骤，它类似准入规则，或者延迟准入，只有符合了准入规则的pod，才会进入Bind阶段。</p>
+<p>Binding阶段，主要就是用来将选出来的node和pod进行绑定，即调用pod的Bind接口，将该绑定关系写入到数据库中，该过程是异步进行的。</p>
+<p>此外，还有一个assume操作，该操作不是一个扩展点，它是在Scheduling阶段，将选出来的node提前更新到缓存中，张磊老师称之为“乐观绑定”，我觉得很形象，其主要目的是为了不阻塞调度的关键路径，因为向apiserver发起绑定请求是一个比较耗时的操作，所以Bind这个操作是异步进行的，但是又不能等到Bind成功之后，才由Informer的事件去触发更新缓存，这样的话，下一次pod调度拿到的缓存信息，很有可能是本次Pod绑定之前的数据，它认为资源还没被分配出去，这就出现了资源调度的不一致性，所以通过assume机制，提前进行缓存更新，同时，发起异步Bind操作，假如后续Bind失败了，也没有关系，Scheduler会清空该pod的缓存，然后将该pod放入到unschedulableQ进行重新调度。</p>
+<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><p>本篇文章从整体上介绍了一下Kubernetes Scheduler的工作原理，从这4大块内容来看（Informer, PriorityQueue, Cache, Scheduling Framework），Scheduler在扩展性上、性能上都做了很多的优化工作，很多小细节考虑的很周到。在设计上，有很多值得学习的地方，翻看到早期的Scheduler代码，实现的非常简单，真心感觉罗马不是一天建成的，还有就是众人拾柴火焰高。</p>
+<p>不过，从上面的设计上也可以看出，目前Scheduler的一个问题就是它只能是单点的，没法水平扩展，因为队列实现的是本地的内存队列，没有依赖外部服务，多个scheduler之间是没法共同协作的，只能通过LeaderElection机制做主备，或者是依赖deployment控制器，做单点服务管理，不过目前看scheduler的性能优化已经很不错了，单点就能支撑很大的规模，<a target="_blank" rel="noopener" href="https://github.com/kubernetes/kubernetes/pull/74041">这里</a>给出一个数据：在5000个node上调度10000个pod，每个pod的调度延迟只有6.7ms，这个性能已经相当不错了，能够满足绝大多数的集群规模。</p>
+
+          </section>
+        </article>
+        
+
+       
+        <div class="pager">
+          
+          
+            <a class="post-next pager-item" href="/2020/12/11/kubernetes/kube-clientgo-informer.html">
+              <strong class="article-nav-caption">Older</strong>
+              <p class="post-nav-title">Kubernetes Informer机制解析</p>
+            </a>
+          
+        </div>
+        
+
+         <!-- comments -->
+        <div class="comment-section">
+  
+    
+    
+<link rel="stylesheet" href="/css/gitalk.css">
+
+    
+<script src="/lib/gitalk.min.js"></script>
+
+    <div id="gitalk-container"></div>
+    <script>
+      const gitalk = new Gitalk({
+        clientID: '54c13c09b0079cbb2386',
+        clientSecret: 'a4b61935040bb6a0ef0764889b6283a21fba00dd',
+        repo: 'hackerain.github.io',
+        owner: 'hackerain',
+        admin: ['hackerain'],
+        id: location.pathname.substr(11,30)+":"+location.pathname.split("").reduce(function(a,b){a=((a<<5)-a)+b.charCodeAt(0);return a&a},0),
+        distractionFreeMode: true
+      })
+      gitalk.render('gitalk-container')
+    </script>
+  
+
+
+</div>
+
+
+    </div>
+    
+</div>
+
+                </div>
+            </div>
+        </div>
+        <footer class="footer">
+    <p>由<a href="http://hexo.io/" target="_blank">Hexo</a>强力驱动，搭载<a target="_blank" rel="noopener" href="https://github.com/wayou/hexo-theme-gstyle">gstyle</a>主题</p>
+    <p>
+        &copy; 2020 hackerain
+    </p>
+</footer>
+
+<script src="/lib/jquery.js"></script>
+
+
+<script src="/lib/waves.js"></script>
+
+
+<script src="/lib/jquery-ui.js"></script>
+
+
+<script src="/lib/jquery.tocify.js"></script>
+
+
+<script src="/js/main.js"></script>
+
+
+    </body>
+</html>
