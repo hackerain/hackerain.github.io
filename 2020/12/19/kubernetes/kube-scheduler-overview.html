@@ -178,8 +178,8 @@
 <p>Scheduling阶段中，Filter是用来过滤符合调度条件的node的；Score则是来给符合条件的node进行打分，从中选择一个最合适的node；Reserve则是为该pod保留资源的，比如volume；Permit是Scheduling阶段最后的步骤，它类似准入规则，或者延迟准入，只有符合了准入规则的pod，才会进入Bind阶段。</p>
 <p>Binding阶段，主要就是用来将选出来的node和pod进行绑定，即调用pod的Bind接口，将该绑定关系写入到数据库中，该过程是异步进行的。</p>
 <p>此外，还有一个assume操作，该操作不是一个扩展点，它是在Scheduling阶段，将选出来的node提前更新到缓存中，张磊老师称之为“乐观绑定”，我觉得很形象，其主要目的是为了不阻塞调度的关键路径，因为向apiserver发起绑定请求是一个比较耗时的操作，所以Bind这个操作是异步进行的，但是又不能等到Bind成功之后，才由Informer的事件去触发更新缓存，这样的话，下一次pod调度拿到的缓存信息，很有可能是本次Pod绑定之前的数据，它认为资源还没被分配出去，这就出现了资源调度的不一致性，所以通过assume机制，提前进行缓存更新，同时，发起异步Bind操作，假如后续Bind失败了，也没有关系，Scheduler会清空该pod的缓存，然后将该pod放入到unschedulableQ进行重新调度。</p>
-<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><p>本篇文章从整体上介绍了一下Kubernetes Scheduler的工作原理，从这4大块内容来看（Informer, PriorityQueue, Cache, Scheduling Framework），Scheduler在扩展性上、性能上都做了很多的优化工作，很多小细节考虑的很周到。在设计上，有很多值得学习的地方，翻看到早期的Scheduler代码，实现的非常简单，真心感觉罗马不是一天建成的，还有就是众人拾柴火焰高。</p>
-<p>不过，从上面的设计上也可以看出，目前Scheduler的一个问题就是它只能是单点的，没法水平扩展，因为队列实现的是本地的内存队列，没有依赖外部服务，多个scheduler之间是没法共同协作的，只能通过LeaderElection机制做主备，或者是依赖deployment控制器，做单点服务管理，不过目前看scheduler的性能优化已经很不错了，单点就能支撑很大的规模，<a target="_blank" rel="noopener" href="https://github.com/kubernetes/kubernetes/pull/74041">这里</a>给出一个数据：在5000个node上调度10000个pod，每个pod的调度延迟只有6.7ms，这个性能已经相当不错了，能够满足绝大多数的集群规模。</p>
+<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><p>本篇文章从整体上介绍了一下Kubernetes Scheduler的工作原理，从这4大块内容来看（Informer, PriorityQueue, Cache, Scheduling Framework），Scheduler在扩展性上、性能上都做了很多的优化工作，很多小细节考虑的很周到。在设计上，有很多值得学习的地方，翻看到早期的Scheduler代码，实现的非常简单，到现在功能这么健全，真心感觉罗马不是一天建成的，还有就是众人拾柴火焰高。</p>
+<p>不过，从上面的设计上也可以看出，目前Scheduler的一个问题就是它只能是单点的，没法水平扩展，因为队列实现的是本地的内存队列，没有依赖外部服务，多个scheduler之间是没法共同协作的，只能通过LeaderElection机制做主备，或者是依赖deployment控制器，做单点服务管理，不过目前看scheduler的性能优化已经很不错了，单点就能支撑很大的规模，<a target="_blank" rel="noopener" href="https://github.com/kubernetes/kubernetes/pull/74041">这里</a>给出一个数据：在5000个node上调度10000个pod，每个pod的调度延迟只有6.7ms，这个性能已经能够满足绝大多数的集群规模。</p>
 
           </section>
         </article>
