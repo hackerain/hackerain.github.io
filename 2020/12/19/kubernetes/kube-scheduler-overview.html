@@ -168,7 +168,7 @@
 <p>而podBackoffQ的存在，主要是为了解决优先级调度算法中存在的”无穷阻塞”或者是”饥饿”问题，即由于高优先级的pod总是被优先调度，而低优先级的pod一直得不到调度的问题。podBackoffQ也是一个优先级队列，不过它的排序算法就不是按照pod的权重值了，而是按照pod加入到unschedulableQ中的时间长短来排序的，即该pod等待被调度的时间越长，则在podBackoffQ中越排在前面，这样就防止了“无穷阻塞”的问题。Scheduler周期性的将超过了backoff时间的pod，从podBackoffQ移动到activeQ，进行再次调度。</p>
 <p>可以看到这三个Queue互相配合，完美实现了优先级调度的功能。</p>
 <h4 id="Cache"><a href="#Cache" class="headerlink" title="Cache"></a>Cache</h4><p>Cache在这里的作用，主要是为了加速调度过程中查询pod和node等信息的速度，了解Informer机制的话，不免有个疑问，就是Informer其实已经在本地缓存了一份数据了，而这里为什么还要再添加一层缓存呢？其实在没有cache之前，确实是直接通过Informer获取的信息，但是Informer中缓存的数据相当于是原始数据，在调度过程中，还需要根据原始数据再实时计算出一些数据，比如该node上所有pod的request之和，或者是该node分配出去的端口号，这种实时计算的，就需要遍历一遍这个Node上所有的pod或者是container，这就会很耗费时间了，在规模环境比较大，pod数量比较多的场景下，这些还是很影响调度性能的。所以一种优化策略，就是再引入一层缓存，依赖informer的事件机制，提前在本地缓存好聚合之后的数据，这样在调度的时候，就不用再实时去计算了，时间复杂度也就从O(containers)变为了O(nodes)。</p>
-<p>当然，这付出的代价，就是代码复杂度又变高了，该缓存的正确与否，直接影响了调度的准确性，后续为了保持调度时的一致性，又引入了snapshot机制，即每次调度pod时，都要给当前的缓存打一个快照，因为如果直接依赖缓存的话，它的数据可能随时会变化，尤其是在node和pod频繁变更时，因此通过打快照，调度前后都使用快照中的数据，保证了调度的一致性。</p>
+<p>当然，这付出的代价，就是代码复杂度又变高了，该缓存的正确与否，直接影响了调度的准确性，后续为了保证调度时的一致性，又引入了snapshot机制，即每次调度pod时，都要给当前的缓存打一个快照，因为如果直接依赖缓存的话，它的数据可能随时会变化，尤其是在node和pod频繁变更时，因此通过打快照，调度前后都使用快照中的数据，保证了调度的一致性。</p>
 <p>针对Cache的优化，社区经历了一个比较漫长的演进过程，这里面有一些很奇怪的数据结构，不了解背景的话，还真的难以理解，后面我们专门有一篇文章来盘点下那些年为提升调度性能而做的优化。</p>
 <h4 id="Scheduling-Framework"><a href="#Scheduling-Framework" class="headerlink" title="Scheduling Framework"></a>Scheduling Framework</h4><p>这个算是Scheduler中的重头戏了，前面已经介绍过，它主要的特点是将调度的过程，定义了几个扩展点，每个扩展点都可以注册一些插件，通过插件的方式来实现具体的调度算法，Kubernetes Scheduler中默认的调度算法，都是通过插件来实现的。整个调度过程分为两部分：<code>Scheduling Cycle</code>和<code>Binding Cycle</code>。前者是为pod找最合适node的过程，后者是将该pod和node进行绑定的过程。</p>
 <ul>
@@ -187,6 +187,11 @@
 
        
         <div class="pager">
+          
+            <a class="post-prev pager-item" href="/2020/12/20/kubernetes/kube-scheduler-cache.html" >
+              <strong class="article-nav-caption">Newer</strong>
+              <p class="post-nav-title">Kubernetes Scheduler性能优化之Cache</p>
+            </a>
           
           
             <a class="post-next pager-item" href="/2020/12/11/kubernetes/kube-clientgo-informer.html">
