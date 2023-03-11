@@ -1,0 +1,372 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+  <title>开心鬼</title>
+  
+  
+  <link href="https://hackerain.me/atom.xml" rel="self"/>
+  
+  <link href="https://hackerain.me/"/>
+  <updated>2023-03-11T15:45:44.734Z</updated>
+  <id>https://hackerain.me/</id>
+  
+  <author>
+    <name>hackerain</name>
+    
+  </author>
+  
+  <generator uri="https://hexo.io/">Hexo</generator>
+  
+  <entry>
+    <title>Elasticsearch大文本字段(large text field)优化方案</title>
+    <link href="https://hackerain.me/2022/09/26/elasticsearch/elasticsearch_large_text_field.html"/>
+    <id>https://hackerain.me/2022/09/26/elasticsearch/elasticsearch_large_text_field.html</id>
+    <published>2022-09-26T00:00:00.000Z</published>
+    <updated>2023-03-11T15:45:44.734Z</updated>
+    
+    
+    <summary type="html">&lt;h2 id=&quot;背景&quot;&gt;&lt;a href=&quot;#背景&quot; class=&quot;headerlink&quot; title=&quot;背景&quot;&gt;&lt;/a&gt;背景&lt;/h2&gt;&lt;p&gt;在全文检索的场景下，经常会有text类型的字段存储的数据量比较大，比如一个pdf文档或者是一本书的内容，可能会有几兆，几十兆，上百兆的大小，单个字段的内容过大，会对集群性能以及稳定性造成比较大的影响，因此本文档针对该场景给出优化建议。&lt;/p&gt;</summary>
+    
+    
+    
+    
+    <category term="elasticsearch" scheme="https://hackerain.me/tags/elasticsearch/"/>
+    
+  </entry>
+  
+  <entry>
+    <title>UMI框架解析</title>
+    <link href="https://hackerain.me/2022/08/07/umi/umi.html"/>
+    <id>https://hackerain.me/2022/08/07/umi/umi.html</id>
+    <published>2022-08-07T10:52:55.000Z</published>
+    <updated>2023-03-11T15:45:44.747Z</updated>
+    
+    
+    <summary type="html">&lt;h2 id=&quot;背景&quot;&gt;&lt;a href=&quot;#背景&quot; class=&quot;headerlink&quot; title=&quot;背景&quot;&gt;&lt;/a&gt;背景&lt;/h2&gt;&lt;p&gt;最近打算自己写一个运维管理平台，给我们内部使用，对于一个运维+后端程序员来说，写前端无疑是最大的挑战了，前端的知识栈真是庞大又杂乱，只掌握了最基础的html+css+js来说是远远不够的，前端发展了这么几十年，每一个领域都有一大堆的标准、组件、框架，比如css有less、sass等扩展，js领域又有react, vue等框架，还有typescript这种带类型的js，光ts的语法就可以复杂到令人发指，此外，还有很多现成的ui库，像阿里的antd，国外的mui，本以为react就已经是学习的终点了，但是还有umi这种基于react的前端框架，这还没完，还有再上一层的基于umi的antd pro框架，一层接一层，而且很多公司还在热衷于创造新的框架，这些各个方面各个维度的框架组件，多到让新踏入这个领域的小白无所适从。然而虽然学习成本增加了，但是这种越来越上层的框架组件，是无数前辈大佬的经验总结，能够让前端开发变得快速高效标准，尤其是对我这种小白来说，遵循这些优秀的框架标准，就可以继承这些经验，少走很多弯路，专注于做业务逻辑的开发。&lt;/p&gt;</summary>
+    
+    
+    
+    
+    <category term="umi" scheme="https://hackerain.me/tags/umi/"/>
+    
+  </entry>
+  
+  <entry>
+    <title>OpenStack Ussuri-Victoria-Wallaby版本新功能介绍</title>
+    <link href="https://hackerain.me/2021/11/19/openstack/openstack_uvw_highlight.html"/>
+    <id>https://hackerain.me/2021/11/19/openstack/openstack_uvw_highlight.html</id>
+    <published>2021-11-19T22:12:55.000Z</published>
+    <updated>2023-03-11T15:45:44.744Z</updated>
+    
+    
+    <summary type="html">&lt;h2 id=&quot;社区目标&quot;&gt;&lt;a href=&quot;#社区目标&quot; class=&quot;headerlink&quot; title=&quot;社区目标&quot;&gt;&lt;/a&gt;社区目标&lt;/h2&gt;&lt;p&gt;每个Release，社区都会定义几个社区目标，期望所有项目能够实现，这有利于对OpenStack下众多的项目能够有统一整体性，而不是各自发展各自的。OpenStack 从Ussuir到Victoria到Wallaby版本，社区定义了如下几个社区目标：&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;a href=&quot;https://governance.openstack.org/tc/goals/selected/ussuri/drop-py27.html&quot;&gt;Drop Python 2.7 Support&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;https://governance.openstack.org/tc/goals/selected/wallaby/migrate-policy-format-from-json-to-yaml.html&quot;&gt;Migrate RBAC Policy Format from JSON to YAML&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;https://governance.openstack.org/tc/goals/selected/wallaby/migrate-to-privsep.html&quot;&gt;Migrate from oslo.rootwrap to oslo.privsep&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;</summary>
+    
+    
+    
+    
+    <category term="openstack" scheme="https://hackerain.me/tags/openstack/"/>
+    
+  </entry>
+  
+  <entry>
+    <title>OpenStack Stein-Train版本新功能介绍</title>
+    <link href="https://hackerain.me/2021/11/19/openstack/openstack_rst_highlight.html"/>
+    <id>https://hackerain.me/2021/11/19/openstack/openstack_rst_highlight.html</id>
+    <published>2021-11-19T22:03:55.000Z</published>
+    <updated>2023-03-11T15:45:44.743Z</updated>
+    
+    
+    <summary type="html">&lt;h2 id=&quot;社区目标&quot;&gt;&lt;a href=&quot;#社区目标&quot; class=&quot;headerlink&quot; title=&quot;社区目标&quot;&gt;&lt;/a&gt;社区目标&lt;/h2&gt;&lt;p&gt;每个Release，社区都会定义几个社区目标，期望所有项目能够实现，这有利于对OpenStack下众多的项目能够有统一整体性，而不是各自发展各自的。OpenStack Stein到Train版本，社区定义了如下几个社区目标：&lt;/p&gt;</summary>
+    
+    
+    
+    
+    <category term="openstack" scheme="https://hackerain.me/tags/openstack/"/>
+    
+  </entry>
+  
+  <entry>
+    <title>Kubernetes Kubelet CSI 机制解析</title>
+    <link href="https://hackerain.me/2021/10/16/kubernetes/kube-kubelet-csi.html"/>
+    <id>https://hackerain.me/2021/10/16/kubernetes/kube-kubelet-csi.html</id>
+    <published>2021-10-16T00:00:00.000Z</published>
+    <updated>2023-03-11T15:45:44.738Z</updated>
+    
+    
+    <summary type="html">&lt;p&gt;在CSI之前，Kubernetes本身就内置了很多插件去对接第三方存储，如果内置插件不满足需求，还可以通过FlexVolume机制，去编写自己的存储插件，然后被动态的加载到Kubernetes中，也就是说Kubernetes并不存在像对接容器运行时那种代码侵入性不好维护的问题，那为什么还要再制定一套CSI机制去对接第三方存储呢？其实CSI是一个更通用的存储对接方案，它不仅仅是针对Kubernetes的，而是针对所有的容器编排系统，比如Mesos也支持CSI，而且CSI是通过RPC机制进行交互的，跟语言无关，这样就给存储厂商带来极大的便利，写一次CSI插件，就可以适配到各种容器编排系统，不用为每种容器编排系统单独开发存储插件，这在CSI协议的目标中做了清晰的描述：&lt;/p&gt;</summary>
+    
+    
+    
+    
+    <category term="kubernetes" scheme="https://hackerain.me/tags/kubernetes/"/>
+    
+  </entry>
+  
+  <entry>
+    <title>Kubernetes Kubelet CNI 机制解析</title>
+    <link href="https://hackerain.me/2021/09/20/kubernetes/kube-kubelet-cni.html"/>
+    <id>https://hackerain.me/2021/09/20/kubernetes/kube-kubelet-cni.html</id>
+    <published>2021-09-20T00:00:00.000Z</published>
+    <updated>2023-03-11T15:45:44.738Z</updated>
+    
+    
+    <summary type="html">&lt;h2 id=&quot;CNI简介&quot;&gt;&lt;a href=&quot;#CNI简介&quot; class=&quot;headerlink&quot; title=&quot;CNI简介&quot;&gt;&lt;/a&gt;CNI简介&lt;/h2&gt;&lt;p&gt;这里说Kubelet CNI，其实说法有些不准确，在&lt;a href=&quot;https://hackerain.me/2021/08/15/kubernetes/kube-kubelet-overview.html&quot;&gt;Kubernetes Kubelet机制概述&lt;/a&gt;中就介绍过，Kubelet并没有直接跟CNI交互，而是通过容器运行时跟外部网络进行交互的，换句话说，CNI解决的是容器网络插件化的问题，跟Kubernetes这种容器编排系统并没有直接关系，但是有很多文章都说Kubelet支持了CNI，包括Kubernets官方的文档&lt;a href=&quot;https://kubernetes.io/docs/concepts/extend-kubernetes/compute-storage-net/network-plugins/&quot;&gt;Network Plugins&lt;/a&gt;，其实这里是特指的Docker，因为Docker本身并不支持CNI，kubelet将对Docker网络环境的创建和删除，通过CNI的方式，放在了dockershim中，如果Kubernetes移除了对Docker的支持，就会移除dockershim，那么kubelet对CNI的支持也就会移除，这样两者就完全没有关系了。&lt;/p&gt;</summary>
+    
+    
+    
+    
+    <category term="kubernetes" scheme="https://hackerain.me/tags/kubernetes/"/>
+    
+  </entry>
+  
+  <entry>
+    <title>Kubernetes Kubelet CRI 机制解析</title>
+    <link href="https://hackerain.me/2021/09/07/kubernetes/kube-kubelet-cri.html"/>
+    <id>https://hackerain.me/2021/09/07/kubernetes/kube-kubelet-cri.html</id>
+    <published>2021-09-07T00:00:00.000Z</published>
+    <updated>2023-03-11T15:45:44.738Z</updated>
+    
+    
+    <summary type="html">&lt;h2 id=&quot;CRI机制简介&quot;&gt;&lt;a href=&quot;#CRI机制简介&quot; class=&quot;headerlink&quot; title=&quot;CRI机制简介&quot;&gt;&lt;/a&gt;CRI机制简介&lt;/h2&gt;&lt;p&gt;CRI机制早在2016年的1.5版本就发布出来了，官方在这篇&lt;a href=&quot;https://kubernetes.io/blog/2016/12/container-runtime-interface-cri-in-kubernetes/&quot;&gt;博文&lt;/a&gt;中做了介绍，引入CRI的目的是为了让Kubernetes能够对接多种Container Runtime，而不仅限于Docker这一种。我们知道Docker曾经是容器领域的王者，它的出现开启了容器化时代，紧随其后，又出了很多种其他的容器技术，并且随着容器技术的流行，自然而然产生了对容器编排的需求，于是又涌现了一批容器编排的技术，而Kubernetes就是其中的佼佼者，凭借其强大的社区力量和先进的设计理念，很快独领风骚，在众多竞争者中脱颖而出。&lt;/p&gt;</summary>
+    
+    
+    
+    
+    <category term="kubernetes" scheme="https://hackerain.me/tags/kubernetes/"/>
+    
+  </entry>
+  
+  <entry>
+    <title>Kubernetes Kubelet 机制概述</title>
+    <link href="https://hackerain.me/2021/08/15/kubernetes/kube-kubelet-overview.html"/>
+    <id>https://hackerain.me/2021/08/15/kubernetes/kube-kubelet-overview.html</id>
+    <published>2021-08-15T00:00:00.000Z</published>
+    <updated>2023-03-11T15:45:44.739Z</updated>
+    
+    
+    <summary type="html">&lt;p&gt;距离上一篇文章，已经过去了将近9个月的时间，2021年第一篇文章，竟然是到8月份了，真没想到这个kubelet竟然拖了我这么长时间。研究api以及scheduler的日夜还历历在目，不知不觉就过了这么长时间，现在突然写起来，恍如隔世的感觉，这一方面说明kubelet相比其他组件确实要更复杂一些，另一方面说明最近这一段时间我有些懈怠了，感觉有50%的时间在忙其他事情，25%的时间在研究kubelet，然后25%的时间在懈怠。不过还好，经过这么长时间断断续续的研究，记了很多笔记，梳理清楚了其大致脉络，对kubelet有了一个比较全面的认知，尤其是跟框架有关的，比如CRI，CNI，CSI等各种Plugin机制，知道了这些框架的原理，不论是做插件开发还是运维，都能够按图索骥，快速找到问题所在，然后再深入到具体的细节中。&lt;/p&gt;</summary>
+    
+    
+    
+    
+    <category term="kubernetes" scheme="https://hackerain.me/tags/kubernetes/"/>
+    
+  </entry>
+  
+  <entry>
+    <title>Kubernetes Scheduler Scheduling Framework</title>
+    <link href="https://hackerain.me/2020/12/21/kubernetes/kube-scheduler-framework.html"/>
+    <id>https://hackerain.me/2020/12/21/kubernetes/kube-scheduler-framework.html</id>
+    <published>2020-12-21T00:00:00.000Z</published>
+    <updated>2023-03-11T15:45:44.739Z</updated>
+    
+    
+    <summary type="html">&lt;h2 id=&quot;简介&quot;&gt;&lt;a href=&quot;#简介&quot; class=&quot;headerlink&quot; title=&quot;简介&quot;&gt;&lt;/a&gt;简介&lt;/h2&gt;&lt;p&gt;在&lt;a href=&quot;https://hackerain.me/2020/12/19/kubernetes/kube-scheduler-overview.html&quot;&gt;Kubernetes Scheduler机制概览&lt;/a&gt;中就介绍过&lt;a href=&quot;https://github.com/kubernetes/enhancements/blob/master/keps/sig-scheduling/624-scheduling-framework/README.md&quot;&gt;Scheduling Framework&lt;/a&gt;这个新的调度框架，它通过&lt;code&gt;Plugins以及Extension Points&lt;/code&gt;的方式对调度框架进行了重构，通过在各个预定义的扩展点，插入Plugin的方式，扩展Scheduler的功能，核心的调度算法逻辑，也都放到了Plugin中，如果默认的调度器中的Plugin不能满足需求，可以自己写插件，但是要重新编译代码。&lt;/p&gt;</summary>
+    
+    
+    
+    
+    <category term="kubernetes" scheme="https://hackerain.me/tags/kubernetes/"/>
+    
+  </entry>
+  
+  <entry>
+    <title>Kubernetes Scheduler性能优化之Cache</title>
+    <link href="https://hackerain.me/2020/12/20/kubernetes/kube-scheduler-cache.html"/>
+    <id>https://hackerain.me/2020/12/20/kubernetes/kube-scheduler-cache.html</id>
+    <published>2020-12-20T00:00:00.000Z</published>
+    <updated>2023-03-11T15:45:44.739Z</updated>
+    
+    
+    <summary type="html">&lt;h2 id=&quot;背景&quot;&gt;&lt;a href=&quot;#背景&quot; class=&quot;headerlink&quot; title=&quot;背景&quot;&gt;&lt;/a&gt;背景&lt;/h2&gt;&lt;p&gt;在&lt;a href=&quot;https://hackerain.me/2020/12/19/kubernetes/kube-scheduler-overview.html&quot;&gt;Kubernetes Scheduler机制概览&lt;/a&gt;中就介绍过Cache的作用，它的主要作用是加速调度过程中查询pod和node等信息的速度，此外，还有Snapshot机制，即为了保持调度时数据的一致性，对缓存打的快照。&lt;/p&gt;</summary>
+    
+    
+    
+    
+    <category term="kubernetes" scheme="https://hackerain.me/tags/kubernetes/"/>
+    
+  </entry>
+  
+  <entry>
+    <title>Kubernetes Scheduler机制概览</title>
+    <link href="https://hackerain.me/2020/12/19/kubernetes/kube-scheduler-overview.html"/>
+    <id>https://hackerain.me/2020/12/19/kubernetes/kube-scheduler-overview.html</id>
+    <published>2020-12-19T00:00:00.000Z</published>
+    <updated>2023-03-11T15:45:44.739Z</updated>
+    
+    
+    <summary type="html">&lt;h2 id=&quot;简介&quot;&gt;&lt;a href=&quot;#简介&quot; class=&quot;headerlink&quot; title=&quot;简介&quot;&gt;&lt;/a&gt;简介&lt;/h2&gt;&lt;blockquote&gt;
+&lt;p&gt;在 Kubernetes 项目中，默认调度器的主要职责，就是为一个新创建出来的 Pod，寻找一个最合适的节点（Node）。&lt;/p&gt;
+&lt;p&gt;而这里“最合适”的含义，包括两层：&lt;/p&gt;
+&lt;ol&gt;
+&lt;li&gt;从集群所有的节点中，根据调度算法挑选出所有可以运行该 Pod 的节点；&lt;/li&gt;
+&lt;li&gt;从第一步的结果中，再根据调度算法挑选一个最符合条件的节点作为最终结果。&lt;/li&gt;
+&lt;/ol&gt;
+&lt;p&gt;所以在具体的调度流程中，默认调度器会首先调用一组叫作 Predicate 的调度算法，来检查每个 Node。然后，再调用一组叫作 Priority 的调度算法，来给上一步得到的结果里的每个 Node 打分。最终的调度结果，就是得分最高的那个 Node。&lt;/p&gt;
+&lt;/blockquote&gt;</summary>
+    
+    
+    
+    
+    <category term="kubernetes" scheme="https://hackerain.me/tags/kubernetes/"/>
+    
+  </entry>
+  
+  <entry>
+    <title>Kubernetes Informer机制解析</title>
+    <link href="https://hackerain.me/2020/12/11/kubernetes/kube-clientgo-informer.html"/>
+    <id>https://hackerain.me/2020/12/11/kubernetes/kube-clientgo-informer.html</id>
+    <published>2020-12-11T00:00:00.000Z</published>
+    <updated>2023-03-11T15:45:44.737Z</updated>
+    
+    
+    <summary type="html">&lt;p&gt;Kubernetes的控制器模式是其非常重要的一个设计模式，整个Kubernetes定义的资源对象以及其状态都保存在etcd数据库中，通过apiserver对其进行增删查改，而各种各样的控制器需要从apiserver及时获取这些对象以及其当前定义的状态，然后将其应用到实际中，即将这些对象的实际状态调整为期望状态，让他们保持匹配。因此各种控制器需要和apiserver进行频繁交互，需要能够及时获取对象状态的变化，而如果简单的通过暴力轮询的话，会给apiserver造成很大的压力，且效率很低，因此，Kubernetes设计了Informer这个机制，用来作为控制器跟apiserver交互的桥梁，它主要有两方面的作用：&lt;/p&gt;</summary>
+    
+    
+    
+    
+    <category term="kubernetes" scheme="https://hackerain.me/tags/kubernetes/"/>
+    
+  </entry>
+  
+  <entry>
+    <title>Glance多后端功能介绍</title>
+    <link href="https://hackerain.me/2020/11/12/openstack/glance-multistore.html"/>
+    <id>https://hackerain.me/2020/11/12/openstack/glance-multistore.html</id>
+    <published>2020-11-12T16:24:55.000Z</published>
+    <updated>2023-03-11T15:45:44.740Z</updated>
+    
+    
+    <summary type="html">&lt;p&gt;所谓Glance多后端，其实是针对Cinder的多后端功能对比的，我们知道在Cinder中，cinder-volume后面可以接多个存储后端，并且通过cinder types来选择使用哪个存储后端，Cinder中的这个功能很早就有了，因为Cinder要纳管多种存储，对外提供统一的接口，这个功能是刚需。但是对于Glance来说，类似Cinder的这种Glance多后端就没那么刚了，没有多后端也是可以用的，拿Ceph作为后端存储来说，如果镜像只是存在其中一个存储池A的话，要在另外的存储池B中建虚拟机，发现不能执行rbd clone操作，那么它会将该镜像下载到本地，然后再传到存储池B中，而且下载下来的镜像会缓存到本节点，只要在该节点下载过一次，后面在该节点再使用相同的镜像建虚拟机，就不需要再下载了，这种方式虽然效率低一些，但是不影响使用。但是毕竟不完美啊，所以社区一直到R版，才实现了这个功能，到T版算是生产可用，但是仍然有一些bug还在修复，不过不影响使用。&lt;/p&gt;</summary>
+    
+    
+    
+    
+    <category term="openstack" scheme="https://hackerain.me/tags/openstack/"/>
+    
+  </entry>
+  
+  <entry>
+    <title>Glance Interoperable Image Import功能介绍</title>
+    <link href="https://hackerain.me/2020/11/11/openstack/glance-interoperable-image-import.html"/>
+    <id>https://hackerain.me/2020/11/11/openstack/glance-interoperable-image-import.html</id>
+    <published>2020-11-11T23:35:55.000Z</published>
+    <updated>2023-03-11T15:45:44.740Z</updated>
+    
+    
+    <summary type="html">&lt;p&gt;Glance最核心的功能就是镜像管理，我们最常做的操作就是管理员给Glance上传一个镜像，然后大家就都可以从这个镜像创建虚拟机了，这在私有云场景下，没有任何问题。但是在公有云场景下，需要考虑的问题就比较多了，像“应用市场”就是可以让普通用户上传自己制作的镜像，并且共享给其他人，这一方面是请求量比在私有云场景大了很多，可能同时有很多人在传镜像，而且镜像一般都很大，如果不做优化，Glance API可能很快就卡死了；另一方面是安全性问题，普通用户是不可信的，管理员要对其上传的镜像做各种安全性、合法性检查；其他的，像管理员可能需要对用户上传的镜像自动做类型转换，以及打一些元数据标签之类的；所以，Glance的核心功能虽然简单，但是随着需求的不断提出，它还是经历过了一个比较“漫长”的演进过程。&lt;/p&gt;</summary>
+    
+    
+    
+    
+    <category term="openstack" scheme="https://hackerain.me/tags/openstack/"/>
+    
+  </entry>
+  
+  <entry>
+    <title>Keystone Fernet Token解析</title>
+    <link href="https://hackerain.me/2020/11/09/openstack/keystone-fernet-token.html"/>
+    <id>https://hackerain.me/2020/11/09/openstack/keystone-fernet-token.html</id>
+    <published>2020-11-09T22:35:55.000Z</published>
+    <updated>2023-03-11T15:45:44.741Z</updated>
+    
+    
+    <summary type="html">&lt;h2 id=&quot;Token的一点历史&quot;&gt;&lt;a href=&quot;#Token的一点历史&quot; class=&quot;headerlink&quot; title=&quot;Token的一点历史&quot;&gt;&lt;/a&gt;Token的一点历史&lt;/h2&gt;&lt;p&gt;Keystone在早期的版本中，其认证Token有好几种类型，最早期的也是当时最成熟的是UUID类型的Token，它将token以及其元数据存储在数据库中，以一个UUID来标识一个Token，这种方式一个明显的问题就是当Token量很大时，会往数据库中写大量的Token，一个中等集群，往往数据库中有十几G的数据都是Token，需要定期清理，否则会拖慢其他请求；后来发展出了基于公私钥非对称加密的PKI/PKIZ Token，这种Token不需要存数据库，Token元数据直接被编码到Token ID中，而且因为是非对称的，甚至都不需要跟Keystone交互，本地就可以完成验证以及解析Token，但是这种Token，因为Token元数据都在Token ID中，随着集群大小以及复杂度的变化，其长度也会变化，有时会变得非常长，超过了HTTP对Header的长度限制，再加上公私钥的管理也比较复杂，所以PKI体系的Token基本没有被用起来；于是就有了Fernet Token，它可以看成是UUID和PKI折中的一种方案，它有以下几个特点：&lt;/p&gt;</summary>
+    
+    
+    
+    
+    <category term="openstack" scheme="https://hackerain.me/tags/openstack/"/>
+    
+  </entry>
+  
+  <entry>
+    <title>Kubernetes APIServer扩展机制原理</title>
+    <link href="https://hackerain.me/2020/10/08/kubernetes/kube-apiserver-extensions.html"/>
+    <id>https://hackerain.me/2020/10/08/kubernetes/kube-apiserver-extensions.html</id>
+    <published>2020-10-08T00:00:00.000Z</published>
+    <updated>2023-03-11T15:45:44.736Z</updated>
+    
+    
+    <summary type="html">&lt;p&gt;终于来到了这一篇，APIServer的扩展机制，前面介绍的那几篇，可以说都是在给这篇铺平道路，先来回顾下：&lt;/p&gt;</summary>
+    
+    
+    
+    
+    <category term="kubernetes" scheme="https://hackerain.me/tags/kubernetes/"/>
+    
+  </entry>
+  
+  <entry>
+    <title>Kubernetes APIServer API资源安装</title>
+    <link href="https://hackerain.me/2020/10/06/kubernetes/kube-apiserver-api-resource-installation.html"/>
+    <id>https://hackerain.me/2020/10/06/kubernetes/kube-apiserver-api-resource-installation.html</id>
+    <published>2020-10-06T00:00:00.000Z</published>
+    <updated>2023-03-11T15:45:44.735Z</updated>
+    
+    
+    <summary type="html">&lt;p&gt;在&lt;a href=&quot;https://hackerain.me/2020/09/19/kubernetes/kube-apiserver-storage-overview.html&quot;&gt;Kubernetes APIServer Storage 框架解析&lt;/a&gt;中，我们介绍了APIServer相关的存储框架，每个API资源，都有对应的&lt;code&gt;REST store&lt;/code&gt;以及&lt;code&gt;etcd store&lt;/code&gt;。在&lt;a href=&quot;https://hackerain.me/2020/10/05/kubernetes/kube-apiserver-genericapiserver.html&quot;&gt;Kubernetes APIServer GenericAPIServer&lt;/a&gt;中介绍了GenericAPIServer的Handler是如何构建，API对象是如何以APIGroupInfo的形式注册进Handler中的。在&lt;a href=&quot;https://hackerain.me/2020/08/09/kubernetes/kube-apiserver-overview.html&quot;&gt;Kubernetes APIServer 机制概述&lt;/a&gt;中简单介绍了APIServer的扩展机制，即Aggregator, APIExtensions以及KubeAPIServer这三者之间通过Delegation的方式实现了扩展。本篇文章就重点介绍下这三个”扩展对象”中的API对象资源是如何组织成APIGroupInfo的，然后怎么调用GenericAPIServer中暴露出来的安装方法进行安装的，最后盘点下当前版本的Kubernetes中，都有哪些API对象资源。&lt;/p&gt;</summary>
+    
+    
+    
+    
+    <category term="kubernetes" scheme="https://hackerain.me/tags/kubernetes/"/>
+    
+  </entry>
+  
+  <entry>
+    <title>Kubernetes APIServer GenericAPIServer</title>
+    <link href="https://hackerain.me/2020/10/05/kubernetes/kube-apiserver-genericapiserver.html"/>
+    <id>https://hackerain.me/2020/10/05/kubernetes/kube-apiserver-genericapiserver.html</id>
+    <published>2020-10-05T00:00:00.000Z</published>
+    <updated>2023-03-11T15:45:44.736Z</updated>
+    
+    
+    <summary type="html">&lt;p&gt;在&lt;a href=&quot;https://hackerain.me/2020/08/09/kubernetes/kube-apiserver-overview.html&quot;&gt;Kubernetes APIServer 机制概述&lt;/a&gt;中我们介绍到了APIServer的本质其实是一个实现了RESTful API的WebServer，它使用golang的&lt;a href=&quot;https://golang.org/pkg/net/http/&quot;&gt;net/http&lt;/a&gt;的Server构建，并且Handler是其中非常重要的概念，此外，又简单介绍了APIServer的扩展机制，即Aggregator, APIExtensions以及KubeAPIServer这三者之间通过Delegation的方式实现了扩展。&lt;/p&gt;</summary>
+    
+    
+    
+    
+    <category term="kubernetes" scheme="https://hackerain.me/tags/kubernetes/"/>
+    
+  </entry>
+  
+  <entry>
+    <title>Kubernetes APIServer NonGoRestfulMux</title>
+    <link href="https://hackerain.me/2020/10/04/kubernetes/kube-apiserver-nongorestfulmux.html"/>
+    <id>https://hackerain.me/2020/10/04/kubernetes/kube-apiserver-nongorestfulmux.html</id>
+    <published>2020-10-04T00:00:00.000Z</published>
+    <updated>2023-03-11T15:45:44.737Z</updated>
+    
+    
+    <summary type="html">&lt;p&gt;在&lt;a href=&quot;https://hackerain.me/2020/09/28/golang/go-restful-overview.html&quot;&gt;go-restful&lt;/a&gt;的介绍中，有介绍过Kubernetes中核心的API是使用go-restful来构建的，我们知道除了核心API，Kubernetes APIServer还提供了两种扩展机制，分别为Aggregation和APIExtensions，这两者中的API对象，则是使用NonGoRestfulMux来构建的，之所以不继续使用go-restful，原因还没有细究，可能是因为一些兼容性问题，后续有可能抛弃go-restful，完全切到NonGoRestfulMux上来，但是看改造工作量还是比较大的。下面我们来看看这个NonGoRestfulMux究竟是个什么东西，其代码位于：&lt;code&gt;apiserver/pkg/server/mux/pathrecorder.go&lt;/code&gt;&lt;/p&gt;</summary>
+    
+    
+    
+    
+    <category term="kubernetes" scheme="https://hackerain.me/tags/kubernetes/"/>
+    
+  </entry>
+  
+  <entry>
+    <title>go-restful简析</title>
+    <link href="https://hackerain.me/2020/09/28/golang/go-restful-overview.html"/>
+    <id>https://hackerain.me/2020/09/28/golang/go-restful-overview.html</id>
+    <published>2020-09-28T00:00:00.000Z</published>
+    <updated>2023-03-11T15:45:44.735Z</updated>
+    
+    
+    <summary type="html">&lt;p&gt;&lt;a href=&quot;https://github.com/emicklei/go-restful&quot;&gt;go-restful&lt;/a&gt;是一个golang语言实现的RESTful库，因为Kubernetes APIServer使用它实现RESTful API，这里就简单分析下。看它的文档介绍，功能还是挺强大的，主要体现在它的路由策略上，支持静态，谷歌式的自定义方法，正则表达式，以及URL内参数等，此外还支持json/xml等格式化，还有filter过滤器等，虽然有这么多功能，但是Kubernetes使用的比较简单，只用到了它最基础的功能，即路由功能，这里就重点分析下这个功能。&lt;/p&gt;</summary>
+    
+    
+    
+    
+    <category term="kubernetes" scheme="https://hackerain.me/tags/kubernetes/"/>
+    
+  </entry>
+  
+</feed>

@@ -1,0 +1,9 @@
+@startuml kube_csi_mount_pvc
+autonumber "<b>[00]"
+
+
+apiserver <- volumeManager: Get Pods and Volumes
+volumeManager -> volumeManager: Generate dsw and asw
+volumeManager -> "csi driver": NodeStageVolume
+volumeManager -> "csi driver": NodePublishVolume
+@enduml

@@ -1,0 +1,11 @@
+@startuml kube_csi_create_pvc
+autonumber "<b>[00]"
+
+actor Admin
+
+Admin -> apiserver: Create PVC
+"external-provisioner" -> "csi driver": CreateVolume
+"external-provisioner" -> apiserver: Create PV
+"persistent-volume-binder" -> apiserver: Bind PV and PVC
+
+@enduml

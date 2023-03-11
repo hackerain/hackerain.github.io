@@ -1,0 +1,9 @@
+@startuml kube_csi_attach_pvc
+autonumber "<b>[00]"
+
+actor Admin
+
+Admin -> apiserver: PVC used by Pod
+"attachdetach-controller" -> apiserver: Create VolumeAttachment
+"external-attacher" -> "csi driver": ControllerPublishVolume
+@enduml

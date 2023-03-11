@@ -1,0 +1,426 @@
+<!doctype html>
+<html lang="zh"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"><meta><title>OpenStack Ussuri-Victoria-Wallaby版本新功能介绍 - 开心鬼</title><link rel="manifest" href="/manifest.json"><meta name="application-name" content="开心鬼"><meta name="msapplication-TileImage" content="/img/favicon.svg"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-title" content="开心鬼"><meta name="apple-mobile-web-app-status-bar-style" content="default"><meta name="description" content="社区目标每个Release，社区都会定义几个社区目标，期望所有项目能够实现，这有利于对OpenStack下众多的项目能够有统一整体性，而不是各自发展各自的。OpenStack 从Ussuir到Victoria到Wallaby版本，社区定义了如下几个社区目标：  Drop Python 2.7 Support Migrate RBAC Policy Format from JSON to YAML"><meta property="og:type" content="blog"><meta property="og:title" content="OpenStack Ussuri-Victoria-Wallaby版本新功能介绍"><meta property="og:url" content="https://hackerain.me/2021/11/19/openstack/openstack_uvw_highlight.html"><meta property="og:site_name" content="开心鬼"><meta property="og:description" content="社区目标每个Release，社区都会定义几个社区目标，期望所有项目能够实现，这有利于对OpenStack下众多的项目能够有统一整体性，而不是各自发展各自的。OpenStack 从Ussuir到Victoria到Wallaby版本，社区定义了如下几个社区目标：  Drop Python 2.7 Support Migrate RBAC Policy Format from JSON to YAML"><meta property="og:locale" content="zh_CN"><meta property="og:image" content="https://hackerain.me/img/og_image.png"><meta property="article:published_time" content="2021-11-19T22:12:55.000Z"><meta property="article:modified_time" content="2023-03-11T15:45:44.744Z"><meta property="article:author" content="hackerain"><meta property="article:tag" content="openstack"><meta property="twitter:card" content="summary"><meta property="twitter:image:src" content="https://hackerain.me/img/og_image.png"><script type="application/ld+json">{"@context":"https://schema.org","@type":"BlogPosting","mainEntityOfPage":{"@type":"WebPage","@id":"https://hackerain.me/2021/11/19/openstack/openstack_uvw_highlight.html"},"headline":"OpenStack Ussuri-Victoria-Wallaby版本新功能介绍","image":["https://hackerain.me/img/og_image.png"],"datePublished":"2021-11-19T22:12:55.000Z","dateModified":"2023-03-11T15:45:44.744Z","author":{"@type":"Person","name":"hackerain"},"publisher":{"@type":"Organization","name":"开心鬼","logo":{"@type":"ImageObject","url":"https://hackerain.me/assets/logo.jpg"}},"description":"社区目标每个Release，社区都会定义几个社区目标，期望所有项目能够实现，这有利于对OpenStack下众多的项目能够有统一整体性，而不是各自发展各自的。OpenStack 从Ussuir到Victoria到Wallaby版本，社区定义了如下几个社区目标：  Drop Python 2.7 Support Migrate RBAC Policy Format from JSON to YAML"}</script><link rel="canonical" href="https://hackerain.me/2021/11/19/openstack/openstack_uvw_highlight.html"><link rel="icon" href="/img/favicon.svg"><link rel="stylesheet" href="https://use.fontawesome.com/releases/v6.0.0/css/all.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/highlight.js@9.12.0/styles/atom-one-light.css"><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Ubuntu:wght@400;600&amp;family=Source+Code+Pro"><link rel="stylesheet" href="/css/default.css"><style>body>.footer,body>.navbar,body>.section{opacity:0}</style><!--!--><!--!--><!--!--><!--!--><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/cookieconsent@3.1.1/build/cookieconsent.min.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/lightgallery@1.10.0/dist/css/lightgallery.min.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/justifiedGallery@3.8.1/dist/css/justifiedGallery.min.css"><!--!--><!--!--><style>.pace{-webkit-pointer-events:none;pointer-events:none;-webkit-user-select:none;-moz-user-select:none;user-select:none}.pace-inactive{display:none}.pace .pace-progress{background:#3273dc;position:fixed;z-index:2000;top:0;right:100%;width:100%;height:2px}</style><script src="https://cdn.jsdelivr.net/npm/pace-js@1.2.4/pace.min.js"></script><!--!--><!--!--><!-- hexo injector head_end start --><script>
+  (function () {
+      function switchTab() {
+          if (!location.hash) {
+            return;
+          }
+
+          const id = '#' + CSS.escape(location.hash.substring(1));
+          const $tabMenu = document.querySelector(`.tabs a[href="${id}"]`);
+          if (!$tabMenu) {
+            return;
+          }
+
+          const $tabMenuContainer = $tabMenu.parentElement.parentElement;
+          Array.from($tabMenuContainer.children).forEach($menu => $menu.classList.remove('is-active'));
+          Array.from($tabMenuContainer.querySelectorAll('a'))
+              .map($menu => document.getElementById($menu.getAttribute("href").substring(1)))
+              .forEach($content => $content.classList.add('is-hidden'));
+
+          if ($tabMenu) {
+              $tabMenu.parentElement.classList.add('is-active');
+          }
+          const $activeTab = document.querySelector(id);
+          if ($activeTab) {
+              $activeTab.classList.remove('is-hidden');
+          }
+      }
+      switchTab();
+      window.addEventListener('hashchange', switchTab, false);
+  })();
+  </script><!-- hexo injector head_end end --><meta name="generator" content="Hexo 6.3.0"><link rel="alternate" href="/atom.xml" title="开心鬼" type="application/atom+xml">
+</head><body class="is-3-column"><nav class="navbar navbar-main"><div class="container navbar-container"><div class="navbar-brand justify-content-center"><a class="navbar-item navbar-logo" href="/"><img src="/assets/logo.jpg" alt="开心鬼" height="28"></a></div><div class="navbar-menu"><div class="navbar-start"><a class="navbar-item" href="/">Home</a><a class="navbar-item" href="/archives">Archives</a><a class="navbar-item" href="/categories">Categories</a><a class="navbar-item" href="/tags">Tags</a><a class="navbar-item" href="/about">About</a></div><div class="navbar-end"><a class="navbar-item is-hidden-tablet catalogue" title="目录" href="javascript:;"><i class="fas fa-list-ul"></i></a><a class="navbar-item search" title="搜索" href="javascript:;"><i class="fas fa-search"></i></a></div></div></div></nav><section class="section"><div class="container"><div class="columns"><div class="column order-2 column-main is-8-tablet is-8-desktop is-6-widescreen"><div class="card"><article class="card-content article" role="article"><div class="article-meta is-size-7 is-uppercase level is-mobile"><div class="level-left"><span class="level-item"><time dateTime="2021-11-19T22:12:55.000Z" title="11/19/2021, 10:12:55 PM">2021-11-19</time>发表</span><span class="level-item"><time dateTime="2023-03-11T15:45:44.744Z" title="3/11/2023, 3:45:44 PM">2023-03-11</time>更新</span><span class="level-item">31 分钟读完 (大约4633个字)</span></div></div><h1 class="title is-3 is-size-4-mobile">OpenStack Ussuri-Victoria-Wallaby版本新功能介绍</h1><div class="content"><h2 id="社区目标"><a href="#社区目标" class="headerlink" title="社区目标"></a>社区目标</h2><p>每个Release，社区都会定义几个社区目标，期望所有项目能够实现，这有利于对OpenStack下众多的项目能够有统一整体性，而不是各自发展各自的。OpenStack 从Ussuir到Victoria到Wallaby版本，社区定义了如下几个社区目标：</p>
+<ul>
+<li><a target="_blank" rel="noopener" href="https://governance.openstack.org/tc/goals/selected/ussuri/drop-py27.html">Drop Python 2.7 Support</a></li>
+<li><a target="_blank" rel="noopener" href="https://governance.openstack.org/tc/goals/selected/wallaby/migrate-policy-format-from-json-to-yaml.html">Migrate RBAC Policy Format from JSON to YAML</a></li>
+<li><a target="_blank" rel="noopener" href="https://governance.openstack.org/tc/goals/selected/wallaby/migrate-to-privsep.html">Migrate from oslo.rootwrap to oslo.privsep</a></li>
+</ul>
+<span id="more"></span>
+
+<p>首先是移除了对Python 2.7的支持，在前几个版本，逐渐将各个项目切换到了Python 3，在U版各个项目都申明了对Python 2.7不再提供支持。其次是要将RBAC的policy文件的格式从JSON切换到YAML格式，在Q版，将默认的policy规则写到了代码中，需要定制的才需要写到配置文件中，在W版，则将policy配置文件的格式从json切换到了yaml，更加方便和友好。此外，还有将项目中需要执行root权限命令依赖的组件从oslo.rootwrap切换到了oslo.privsep，更加安全。</p>
+<h2 id="特性概述"><a href="#特性概述" class="headerlink" title="特性概述"></a>特性概述</h2><p>整体上，这几个release没有什么新的功能推出，而是在前几个版本的基础上，进行增强和改进，主要有以下几个特点：</p>
+<ul>
+<li>全面拥抱Python 3，各个项目逐渐移除了对Python 2的支持</li>
+<li>在安全层面，都陆陆续续推进了reader只读权限的API改造</li>
+<li>在T版引入multistore之后，nova, cinder等项目都得进行适配，以支持multistore</li>
+<li>在硬件加速，裸机管理上持续改进，添加了更多硬件支持，并且跟nova等项目进行更好的交互集成</li>
+<li>在网络层面，新增加了ovn的ML2 memchanism driver，对ovn driver进行了很多改进，目标是后续将ovn替代ovs成为默认的driver</li>
+</ul>
+<h2 id="功能盘点"><a href="#功能盘点" class="headerlink" title="功能盘点"></a>功能盘点</h2><h3 id="Cinder"><a href="#Cinder" class="headerlink" title="Cinder"></a>Cinder</h3><p>Ussuri</p>
+<ul>
+<li>进行了很多功能上的改进，包括为某个volume type设置最大最小的size，并且可以过滤出某一个时间段内的volume列表</li>
+<li>支持glance的multistore，在将volume上传到glance时，支持指定store进行上传</li>
+</ul>
+<p>Victoria</p>
+<ul>
+<li>支持设置默认的volume type，并且可以为单独的某个项目设置volume type</li>
+<li>为cinder backup开发了新的压缩算法Zstandard，之前默认的压缩算法是zlib</li>
+</ul>
+<p>Wallaby</p>
+<ul>
+<li>添加了新的存储后端：Ceph iSCSI, Dell EMC PowerVault ME, KIOXIA Kumoscale, Open-E JovianDSS, and TOYOU ACS5000.</li>
+<li>cinder-manage命令增加了对quota的check和sync命令，用来为检查和矫正不同步的quota</li>
+</ul>
+<h3 id="Cyborg"><a href="#Cyborg" class="headerlink" title="Cyborg"></a>Cyborg</h3><p>Ussuri</p>
+<ul>
+<li>由于nova和cyborg的集成已经完成，用户可以创建带加速器的虚拟机</li>
+<li>增加了新的API，可以用来将cyborg管理的硬件列表列出来</li>
+</ul>
+<p>Victoria</p>
+<ul>
+<li>支持对带加速器的虚拟机进行Rebuild和Evacuate操作</li>
+<li>支持了更多硬件加速器(Intel QAT and Inspur FPGA)</li>
+</ul>
+<p>Wallaby</p>
+<ul>
+<li>支持对带加速器的虚拟机进行 Shelve/Unshelve 操作</li>
+<li>支持更多的硬件加速器（Intel NIC and Inspur NVMe SSD）</li>
+</ul>
+<h3 id="Glance"><a href="#Glance" class="headerlink" title="Glance"></a>Glance</h3><p>Ussuri</p>
+<ul>
+<li>增强multistore的功能，现在可以将镜像一次上传到所有的store中，并且支持在不同的store之间拷贝镜像，可以删除单个store中的镜像</li>
+<li>在glance-store中，将s3 driver又引入进来，之前是由于没人维护，所以将s3 driver删除掉了</li>
+</ul>
+<p>Victoria</p>
+<ul>
+<li>增强multistore的功能，管理员可以设置允许其他用户从其他租户拷贝镜像</li>
+<li>Glance 支持配置 Cinder的 mutibackend，即Glance的后端是Cinder时，可以指定Cinder的volume type</li>
+</ul>
+<p>Wallaby</p>
+<ul>
+<li>支持glance-direct的上传方式，即不需要一个所有API都可以访问到的共享存储，就可以使用 Interoperable Image Import 的镜像上传方式</li>
+</ul>
+<h3 id="Ironic"><a href="#Ironic" class="headerlink" title="Ironic"></a>Ironic</h3><p>Ussuri</p>
+<ul>
+<li>新增了硬件的retirement功能，可以让用户将某个node设置为retirement，新的调度请求就不会调度到这个节点上</li>
+<li>支持了多租户模式，允许普通用户使用裸机资源</li>
+</ul>
+<p>Victoria</p>
+<ul>
+<li>deploy steps的步骤进行了优化，分解成多个步骤，在部署的时候，可以支持RAID和BIOS的配置</li>
+</ul>
+<p>Wallaby</p>
+<ul>
+<li>RBAC的增强，内置支持只读，普通用户，管理员三个等级的权限划分</li>
+</ul>
+<h3 id="Keystone"><a href="#Keystone" class="headerlink" title="Keystone"></a>Keystone</h3><ul>
+<li>在Keystone的bootstrap阶段，已经默认将admin的role设置为 immutable</li>
+</ul>
+<h3 id="Kolla"><a href="#Kolla" class="headerlink" title="Kolla"></a>Kolla</h3><p>Ussuri</p>
+<ul>
+<li>所有的镜像，脚本，以及ansible playbook，都已经切换到Python 3，移除了对Python 2的支持</li>
+<li>支持CentOS 8作为操作系统以及容器镜像，移除了对CentOS 7的支持，Train是唯一一个即支持CentOS 7和 CentOS 8的版本</li>
+<li>添加了对后端API的TLS加密的支持，包括Barbican, Cinder, Glance, Heat, Horizon, Keystone, Nova and Placement</li>
+<li>移除了对Ceph部署的支持，仅提供跟外部Ceph进行对接的逻辑</li>
+</ul>
+<p>Victoria</p>
+<ul>
+<li>为核心的项目添加了Docker的healthcheck</li>
+<li>添加了对RabbitMQ的TLS加密支持</li>
+<li>支持添加多个globals.yml，在 /etc/globals.d/目录中，可以添加多个*.yml文件，可以为特定的服务创建独立的配置文件</li>
+<li>添加了 配置项 haproxy_host_ipv4_tcp_retries2，去配置TCP 重连的内核参数 ，修复了VIP漂移时，因为数据库连接没有及时释放而导致的服务故障</li>
+</ul>
+<p>Wallaby</p>
+<ul>
+<li>添加了对Prometheus 2.x的支持</li>
+<li>添加了对CentOS Stream 8的支持，它可以作为操作系统以及容器镜像，从Wallaby开始，Kolla将仅支持CentOS Stream 8发行版，Victoria是唯一一个即支持CentOS Linux 8，又支持CentOS Stream 8的版本</li>
+<li>为其他项目的容器添加了Docker Healthcheck</li>
+<li>支持在同一个OpenStack集群中，部署多个MariaDB集群，以支持不同服务使用不同的数据库集群，提升集群的支撑能力</li>
+<li>修复了一个比较严重的bug，在停掉nova_libvirt容器时，会使其上的虚拟机被Kill，见链接：<a target="_blank" rel="noopener" href="https://launchpad.net/bugs/1941706">LP#1941706</a></li>
+</ul>
+<h3 id="Neutron"><a href="#Neutron" class="headerlink" title="Neutron"></a>Neutron</h3><p>Ussuri</p>
+<ul>
+<li>新增了ovn ml2 memchanism driver，以后ovn可能取代ovs成为默认的ml2 driver</li>
+<li>支持配置stateless的安全组</li>
+</ul>
+<p>Victoria</p>
+<ul>
+<li>Metadata服务现在支持在IPv6环境下运行</li>
+<li>floatingip的port forwarding功能，目前添加到了ovn driver中</li>
+</ul>
+<p>Wallaby</p>
+<ul>
+<li>添加了一个新的网络类型 network:routed ，支持通过BGP协议下发路由</li>
+<li>在SR-IOV的ml2 driver中，添加了 一个新的 网卡类型 accelerator-direct，可以创建以cyborg中管理的硬件加速器作为后端的网络端口</li>
+<li>Neutron RBAC默认也支持了只读，普通用户，管理员的权限管理</li>
+</ul>
+<h3 id="Nova"><a href="#Nova" class="headerlink" title="Nova"></a>Nova</h3><p>Ussuri</p>
+<ul>
+<li>由于nova和cyborg的集成已经完成，用户可以创建带加速器的虚拟机</li>
+<li>libvirt driver现在支持带持久化内存的虚拟机进行热迁移</li>
+<li>RBAC的增强，内置支持只读，普通用户，管理员三个等级的权限划分</li>
+</ul>
+<p>Victoria</p>
+<ul>
+<li>支持在同一个虚拟机中，混用pin cpu和floating cpu，可以让CPU密集型的业务使用pin cpu，而其他业务使用floating cpu</li>
+<li>使用Glance的multistore模式时，并且Glance的后端是RBD，nova支持 <a target="_blank" rel="noopener" href="https://specs.openstack.org/openstack/nova-specs/specs/victoria/approved/nova-image-download-via-rbd.html">fast cloning</a> 操作，即当在某一个sotre中，没有找到对应的镜像，那么Nova会请求Glance将镜像在store之间复制一份，避免了以前需要下载再上传的操作</li>
+</ul>
+<p>Wallaby</p>
+<ul>
+<li>支持运行中的虚拟机绑定 <a target="_blank" rel="noopener" href="https://docs.openstack.org/api-guide/compute/port_with_resource_request.html">QoS minimum bandwidth</a> 类型的Port</li>
+</ul>
+<h3 id="Octavia"><a href="#Octavia" class="headerlink" title="Octavia"></a>Octavia</h3><p>Ussuri</p>
+<ul>
+<li>支持CentOS 8作为amphora镜像</li>
+</ul>
+<p>Victoria</p>
+<ul>
+<li>Load Balancer的监控数据现在可以上传给多个外部的系统，可以方便的跟第三方的监控系统进行集成</li>
+<li>创建amphora虚拟机时，可以指定镜像的tag放到flavor中，支持使用不同的镜像创建amphora虚拟机</li>
+<li>Load Balancer现在支持v2版本的PROXY协议，可以获得更好的性能</li>
+</ul>
+<p>Wallaby</p>
+<ul>
+<li>Load Balancer现在支持gRPC协议</li>
+<li>Load Balancer支持 Stream Control Transmission Protocol (SCTP) 负载均衡算法</li>
+</ul>
+<h2 id="参考资料"><a href="#参考资料" class="headerlink" title="参考资料"></a>参考资料</h2><ul>
+<li><a target="_blank" rel="noopener" href="https://governance.openstack.org/tc/goals/">https://governance.openstack.org/tc/goals/</a></li>
+<li><a target="_blank" rel="noopener" href="https://releases.openstack.org/ussuri/highlights.html">https://releases.openstack.org/ussuri/highlights.html</a></li>
+<li><a target="_blank" rel="noopener" href="https://releases.openstack.org/victoria/highlights.html">https://releases.openstack.org/victoria/highlights.html</a></li>
+<li><a target="_blank" rel="noopener" href="https://releases.openstack.org/wallaby/highlights.html">https://releases.openstack.org/wallaby/highlights.html</a></li>
+<li><a target="_blank" rel="noopener" href="https://specs.openstack.org/">https://specs.openstack.org/</a></li>
+<li><a target="_blank" rel="noopener" href="https://releases.openstack.org/ussuri/index.html">https://releases.openstack.org/ussuri/index.html</a></li>
+<li><a target="_blank" rel="noopener" href="https://releases.openstack.org/victoria/index.html">https://releases.openstack.org/victoria/index.html</a></li>
+<li><a target="_blank" rel="noopener" href="https://releases.openstack.org/wallaby/index.html">https://releases.openstack.org/wallaby/index.html</a></li>
+</ul>
+<h2 id="英文版"><a href="#英文版" class="headerlink" title="英文版"></a>英文版</h2><p>cinder</p>
+<ul>
+<li>ussuri<ul>
+<li>Numerous improvements in current functionality, for example, the ability to set minimum and maximum sizes for volume-types; the ability to filter the volume list using time comparison operators.<ul>
+<li>Support to query cinder resources filter by time comparison operators</li>
+</ul>
+</li>
+<li>Support for Glance multistore and image data colocation when uploading a volume to the Image Service.<ul>
+<li>Support Glance multiple stores</li>
+</ul>
+</li>
+<li>Python 2 is no longer supported. The minimum version of Python that may be used with this release is Python 3.6.</li>
+</ul>
+</li>
+<li>victoria<ul>
+<li>Improved handling around the configured default volume-type and added new Block Storage API calls with microversion 3.62 that enable setting a project-level default volume-type for individual projects.<ul>
+<li>Default volume type overrides</li>
+</ul>
+</li>
+<li>Support was added to cinder backup to use the popular Zstandard compression algorithm.     The cinder backup service has added support for the popular Zstandard compression algorithm. (The default is the venerable Deflate (zlib) algorithm.)<ul>
+<li>Support modern compression algorithms in cinder backup</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>wallaby<ul>
+<li>Added new backend drivers: Ceph iSCSI, Dell EMC PowerVault ME, KIOXIA Kumoscale, Open-E JovianDSS, and TOYOU ACS5000. Additionally, many current drivers have added support for features exceeding the required driver functions, with revert to snapshot and backend QoS being particularly popular this cycle.</li>
+<li>The cinder-manage command now includes a new quota category with two possible actions check and sync to help administrators manage out of sync quotas on long running deployments.</li>
+</ul>
+</li>
+</ul>
+<p>cyborg</p>
+<ul>
+<li>ussuri<ul>
+<li>Users can now launch instances with accelerators managed by Cyborg, as the Nova-Cyborg integration has been completed. See accelerator operation guide to find which instance operations are supported.</li>
+<li>New APIs have been implemented to list devices managed by Cyborg and, in general, to view and manage inventory of accelerators.</li>
+</ul>
+</li>
+<li>victoria<ul>
+<li>Users can launch instances with accelerators managed by Cyborg since Ussuri release, this release two more operations * Rebuild and * Evacuate are supported. See accelerator operation guide to find all supported operations.</li>
+<li>Cyborg supported new accelerator drivers (Intel QAT and Inspur FPGA) and reached an agreement that Vendors who want to implement a new driver should at least provide a full driver report result. (Of course, providing third-party CI is more welcome.) Supported drivers <a target="_blank" rel="noopener" href="https://docs.openstack.org/cyborg/latest/reference/support-matrix.html">https://docs.openstack.org/cyborg/latest/reference/support-matrix.html</a>_</li>
+</ul>
+</li>
+<li>wallaby<ul>
+<li>Users can launch instances with accelerators managed by Cyborg since Ussuri release, this release more operations such as Shelve/Unshelve are supported. See accelerator operation guide to find all supported operations.</li>
+<li>Cyborg introduces more new accelerator drivers such as Intel NIC and Inspur NVMe SSD driver which allow user to boot up a VM with such device attached.</li>
+</ul>
+</li>
+</ul>
+<p>glance</p>
+<ul>
+<li>ussuri<ul>
+<li>Enhancement in multiple stores feature, users now can import single image in multiple stores, copy existing imgae in multiple stores and delete image from single store.</li>
+<li>Introduced S3 driver for glance-store again</li>
+<li>Dropped support for python 2.7</li>
+</ul>
+</li>
+<li>victoria<ul>
+<li>Enhancement in multiple stores feature, administrator can now set policy to allow user to copy images owned by other tenants</li>
+<li>Glance allow to configure cinder multi-stores, During upgrade from single cinder store to multiple cinder stores, legacy images location url will be updated to the new format with respect to the volume type configured in the stores. Legacy location url: cinder://<volume-id> New location url: cinder://<store-id>/<volume-id></li>
+</ul>
+</li>
+<li>wallaby<ul>
+<li>Glance now supports the glance-direct import method without needing shared storage common to all API workers. By telling each API worker the URL by which it can be reached directly (from the other workers), a shared staging directory can be avoided while still allowing users to upload their data for import. See the worker_self_reference_url config option for more details, as well as the Interoperable Image Import docs.</li>
+</ul>
+</li>
+</ul>
+<p>ironic</p>
+<ul>
+<li>ussuri<ul>
+<li>Support for a hardware retirement workflow to enable automation of hardware decommission in managed clouds.</li>
+<li>Multitenancy concepts and additional policy options are available for non-administrator usage of Ironic.</li>
+</ul>
+</li>
+<li>victoria<ul>
+<li>The deploy steps work has decomposed the basic deployment operation into multiple steps which can now also include steps from supported RAID and BIOS interfaces at the time of deploy.</li>
+</ul>
+</li>
+<li>wallaby<ul>
+<li>The System scoped RBAC model is now supported by Ironic along with the admin, member, and reader roles. This work has resulted in over 1500 new unit tests being added to Ironic.</li>
+</ul>
+</li>
+</ul>
+<p>keystone</p>
+<ul>
+<li>ussuri<ul>
+<li>When bootstrapping a new keystone deployment, the admin role now defaults to having the “immutable” option set, which prevents it from being accidentally deleted or modified unless the “immutable” option is deliberately removed.</li>
+</ul>
+</li>
+<li>victoria</li>
+<li>wallaby</li>
+</ul>
+<p>kolla</p>
+<ul>
+<li>ussuri<ul>
+<li>All images, scripts and Ansible playbooks now use Python 3, and support for Python 2 has been dropped.</li>
+<li>CentOS 8 is now supported as a host operating system and container image, and support for CentOS 7 has been dropped.     Adds support for CentOS 8 as a host Operating System and base container image. This is the only major version of CentOS supported from the Ussuri release. The Train release supports both CentOS 7 and 8 hosts, and provides a route for migration.</li>
+<li>Added initial support for TLS encryption of backend API services, providing end-to-end encryption of API traffic. Currently Barbican, Cinder, Glance, Heat, Horizon, Keystone, Nova and Placement are supported.</li>
+<li>Support for deploying Ceph has been removed, after it was deprecated in Stein. Please use an external tool to deploy Ceph and integrate it with Kolla Ansible deployed OpenStack by following the external Ceph guide.</li>
+</ul>
+</li>
+<li>victoria<ul>
+<li>Implements container healthchecks for core OpenStack services. Docker healthchecks are periodically called scripts that check health of a running service that expose health information in docker ps output and trigger a health_status event. Healthchecks are now enabled by default and can be disabled by setting enable_container_healthchecks to no in globals.yml.</li>
+<li>Adds support for TLS encryption of RabbitMQ client-server communication. See blueprint for details.</li>
+<li>Adds configuration options to enable backend TLS encryption from HAProxy to the Nova, Ironic, and Neutron services. When used in conjunction with enabling TLS for service API endpoints, network communcation will be encrypted end to end, from client through HAProxy to the backend service.</li>
+<li>Adds support for multiple globals files. The main globals.yml file still exists. In addition to that, operators can now create a globals.d directory (next to globals.yml), where they can place any number of *.yml files, for example for specific services they want to add.</li>
+<li>Adds a new flag, docker_disable_default_network, which defaults to no. Docker is using 172.17.0.0/16 by default for bridge networking on docker0, and this might cause routing problems for operator networks. Setting this flag to yes will disable Docker’s bridge networking. This feature will be enabled by default from the Wallaby 12.0.0 release.</li>
+<li>Added a new haproxy configuration variable, haproxy_host_ipv4_tcp_retries2, which allows users to modify this kernel option. This option sets maximum number of times a TCP packet is retransmitted in established state before giving up. The default kernel value is 15, which corresponds to a duration of approximately between 13 to 30 minutes, depending on the retransmission timeout. This variable can be used to mitigate an issue with stuck connections in case of VIP failover, see bug 1917068 for details.</li>
+</ul>
+</li>
+<li>wallaby<ul>
+<li>Prometheus version 2.x deployment added. This version is enabled by default and replaces a forward-incompatible version 1.x. A variable prometheus_use_v1 can be set to yes to preserve version 1.x deployment with its data. Otherwise, Prometheus will start with a new volume, ignoring all previously collected metrics.</li>
+<li>Adds support for CentOS Stream 8 as a host Operating System and base container image. This is the only distribution of CentOS supported from the Wallaby release. The Victoria release will support both CentOS Linux 8 and CentOS Stream 8 hosts and images, and provides a route for migration.</li>
+<li>Implemented container healthchecks for following services: aodh, barbican, blazar, cinder, cloudkitty, cyborg, designate, elasticsearch, gnocchi, haproxy, ironic, kibana, magnum, manila, octavia, redis, sahara, senlin, skydive, tacker, trove, vitrage, watcher. See blueprint</li>
+<li>The Mariadb role now allows the creation of multiple clusters. This provides a benefit to operators as they are able to install and maintain several clusters at once using kolla-ansible. This is useful when deploying database clusters for cells or database clusters for services that have large demands on the database.</li>
+<li>Fixes a critical bug which caused Nova instances (VMs) using libvirtd (the default/usual choice) to get killed on libvirtd (nova_libvirt) container stop (and thus any restart - either manual or done by running Kolla Ansible). It was affecting Wallaby+ on CentOS, Ubuntu and Debian Buster (not Bullseye). If your deployment is also affected, please read the referenced Launchpad bug report, comment #22, for how to fix it without risking data loss. In short: fixing requires redeploying and this will trigger the bug so one has to first migrate important VMs away and only then redeploy empty compute nodes. <a target="_blank" rel="noopener" href="https://launchpad.net/bugs/1941706">LP#1941706</a></li>
+</ul>
+</li>
+</ul>
+<p>neutron</p>
+<ul>
+<li>ussuri<ul>
+<li>Python 2 is no longer supported by Neutron, Python 3.6 and 3.7 are.</li>
+<li>The OVN driver is now merged into Neutron repository and is one of the in-tree Neutron ML2 drivers, like linuxbridge or openvswitch. OVN driver benefits over the openvswitch driver include for example DVR with distributed SNAT traffic, distributed DHCP and possibility to run without network nodes. Other ML2 drivers are still in-tree and are fully supported. Currently default agent is still openvswitch but our plan is to make OVN driver to be the default choice in the future.</li>
+<li>Support for stateless security groups has been added. Users can now create security group set as stateless which means that conntrack will not be used for any rule in that group. One port can only use stateless or stateful security groups. In some use cases stateless security groups will allow operator to choose for optimized datapath performance whereas stateful security groups impose extra processing on the system.</li>
+</ul>
+</li>
+<li>victoria<ul>
+<li>Metadata service is now available over IPv6. Users can now use metadata service without config drive in IPv6-only networks.</li>
+<li>Support for floating IPs port forwarding has been added to OVN backend. Support for Floating IP port forwarding has been added for the OVN backend. Users can now create port forwardings for Floating IPs when the OVN backend is used in Neutron.</li>
+</ul>
+</li>
+<li>wallaby<ul>
+<li>A new subnet of type network:routed has been added. If such a subnet is used, the IPs of that subnet will be advertized with BGP over a provider network, which itself can use segments. This basically achieves a BGP-to-the-rack feature, where the L2 connectivity can be confined to a rack only, and all external routing is done by the switches, using BGP. In this mode, it is still possible to use VXLAN connectivity between the compute nodes, and only floating IPs and router gateways are using BGP routing.</li>
+<li>Added support in SR-IOV agent for accelerator-direct VNIC type. This type represents a port that supports any kind of hardware acceleration and is provided by Cyborg (<a target="_blank" rel="noopener" href="https://wiki.openstack.org/wiki/Cyborg">https://wiki.openstack.org/wiki/Cyborg</a>). RFE: 1909100. accelerator-direct-physical is still not supported.</li>
+<li>Neutron now experimentally supports new API policies with the system scope and the default roles (member, reader, admin).</li>
+</ul>
+</li>
+</ul>
+<p>nova</p>
+<ul>
+<li>ussuri<ul>
+<li>Python 2 is no longer supported by Nova, Python 3.6 and 3.7 are.</li>
+<li>Support for creating servers with accelerator devices via Cyborg.</li>
+<li>The libvirt driver now supports live migration with virtual persistent memory (vPMEM), which requires QEMU as hypervisor. In virtualization layer, QEMU will copy vpmem over the network like volatile memory, due to the typical large capacity of vPMEM, it may takes longer time for live migration.</li>
+<li>The Nova policies implemented the scope concept and new default roles (admin, member, and reader) provided by keystone.</li>
+<li>Further enahanced support for moving servers with minimum bandwidth guarantees.</li>
+</ul>
+</li>
+<li>victoria<ul>
+<li>Nova supports mixing pinned and floating CPUs within the same nova server. Add the mixed instance CPU allocation policy for instance mixing with both PCPU and VCPU resources. This is useful for applications that wish to schedule the CPU intensive workload on the PCPU and the other workloads on VCPU. The mixed policy avoids the necessity of making all instance CPUs to be pinned CPUs, as a result, reduces the consuption of pinned CPUs and increases the instance density.</li>
+<li>Nova supports fast cloning of Glance images from the Ceph RBD cluster even if Glance multistore configuration is used. The libvirt RBD image backend module can now handle a Glance multistore environment where multiple RBD clusters are in use across a single Nova/Glance deployment, configured as independent Glance stores. In the case where an instance is booted with an image that does not exist in the RBD cluster that Nova is configured to use, Nova can ask Glance to copy the image from whatever store it is currently in to the one that represents its RBD cluster. To enable this feature, set [libvirt]/images_rbd_glance_store_name to tell Nova the Glance store name of the RBD cluster it uses.<ul>
+<li>Libvirt RBD image backend support for glance multistore</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>wallaby<ul>
+<li>Now Nova supports attaching neutron ports with QoS minimum bandwidth rules for running servers.</li>
+<li>The libvrit driver now supports vDPA (vHost data path acceleration), a vendor neutral way to accelerate standard virtio device using software or hardware accelerator implementations.</li>
+</ul>
+</li>
+</ul>
+<p>octavia</p>
+<ul>
+<li>ussuri<ul>
+<li>Added support for CentOS 8 amphora images.</li>
+</ul>
+</li>
+<li>victoria<ul>
+<li>Load balancer statistics can now be reported to multiple statistics drivers simultaneously and supports delta metrics. This allows easier integration into external metrics system, such as a time series database.</li>
+<li>Octavia flavors for the amphora driver now support specifying the glance image tag as part of the flavor. This allows the operator to define Octavia flavors that boot alternate amphora images.</li>
+<li>Load balancer pools now support version two of the PROXY protocol. This allows passing client information to member servers when using TCP protocols. PROXYV2 improves the performance of establishing new connections using the PROXY protocol to member servers, especially when the listener is using IPv6.</li>
+</ul>
+</li>
+<li>wallaby<ul>
+<li>With the addition of ALPN and HTTP/2 support for backend pool members, Octavia now supports the gRPC protocol. gRPC enables bidirectional streaming of Protocol Buffer messages through the load balancer.</li>
+<li>Octavia now supports Stream Control Transmission Protocol (SCTP) load balancing. The addition of SCTP enables new mobile, telephony, and multimedia use cases for Octavia.</li>
+<li>Load balancers using the amphora provider will benefit from increased performance and scalability when using amphora images built with version 2.x of the HAProxy load balancing engine.</li>
+<li>Amphora instances are now supported on AArch64/ARM64 based instances.</li>
+</ul>
+</li>
+</ul>
+<p>plancement</p>
+<ul>
+<li>ussuri<ul>
+<li>Python 2.7 support has been dropped. The minimum version of Python now supported by placement is Python 3.6.</li>
+</ul>
+</li>
+<li>wallaby<ul>
+<li>The default policies provided by placement have been updated to add support for read-only roles. This is part of a broader community effort to support read-only roles and implement secure, consistent default policies. Refer to the Keystone documentation for more information on the reason for these changes.</li>
+</ul>
+</li>
+</ul>
+</div><div class="article-licensing box"><div class="licensing-title"><p>OpenStack Ussuri-Victoria-Wallaby版本新功能介绍</p><p><a href="https://hackerain.me/2021/11/19/openstack/openstack_uvw_highlight.html">https://hackerain.me/2021/11/19/openstack/openstack_uvw_highlight.html</a></p></div><div class="licensing-meta level is-mobile"><div class="level-left"><div class="level-item is-narrow"><div><h6>作者</h6><p>hackerain</p></div></div><div class="level-item is-narrow"><div><h6>发布于</h6><p>2021-11-19</p></div></div><div class="level-item is-narrow"><div><h6>更新于</h6><p>2023-03-11</p></div></div><div class="level-item is-narrow"><div><h6>许可协议</h6><p><a class="icons" rel="noopener" target="_blank" title="Creative Commons" href="https://creativecommons.org/"><i class="icon fab fa-creative-commons"></i></a><a class="icons" rel="noopener" target="_blank" title="Attribution" href="https://creativecommons.org/licenses/by/4.0/"><i class="icon fab fa-creative-commons-by"></i></a><a class="icons" rel="noopener" target="_blank" title="Noncommercial" href="https://creativecommons.org/licenses/by-nc/4.0/"><i class="icon fab fa-creative-commons-nc"></i></a></p></div></div></div></div></div><div class="article-tags is-size-7 mb-4"><span class="mr-2">#</span><a class="link-muted mr-2" rel="tag" href="/tags/openstack/">openstack</a></div><!--!--></article></div><!--!--><nav class="post-navigation mt-4 level is-mobile"><div class="level-start"><a class="article-nav-prev level level-item link-muted" href="/2022/08/07/umi/umi.html"><i class="level-item fas fa-chevron-left"></i><span class="level-item">UMI框架解析</span></a></div><div class="level-end"><a class="article-nav-next level level-item link-muted" href="/2021/11/19/openstack/openstack_rst_highlight.html"><span class="level-item">OpenStack Stein-Train版本新功能介绍</span><i class="level-item fas fa-chevron-right"></i></a></div></nav><!--!--></div><div class="column column-left is-4-tablet is-4-desktop is-3-widescreen  order-1 is-sticky"><div class="card widget" data-type="profile"><div class="card-content"><nav class="level"><div class="level-item has-text-centered flex-shrink-1"><div><figure class="image is-128x128 mx-auto mb-2"><img class="avatar is-rounded" src="/assets/avatar.jpg" alt="开心BOY"></figure><p class="title is-size-4 is-block" style="line-height:inherit;">开心BOY</p></div></div></nav><nav class="level is-mobile"><div class="level-item has-text-centered is-marginless"><div><p class="heading">文章</p><a href="/archives"><p class="title">41</p></a></div></div><div class="level-item has-text-centered is-marginless"><div><p class="heading">分类</p><a href="/categories"><p class="title">0</p></a></div></div><div class="level-item has-text-centered is-marginless"><div><p class="heading">标签</p><a href="/tags"><p class="title">7</p></a></div></div></nav><div class="level"><a class="level-item button is-primary is-rounded" href="/about" target="_blank" rel="noopener">关注我</a></div><div class="level is-mobile is-multiline"><a class="level-item button is-transparent is-marginless" target="_blank" rel="noopener" title="Github" href="https://github.com/hackerain"><i class="fab fa-github"></i></a><a class="level-item button is-transparent is-marginless" target="_blank" rel="noopener" title="知识星球" href="https://t.zsxq.com/0bWmBFDpu"><i class="fab fa-dribbble"></i></a><a class="level-item button is-transparent is-marginless" target="_blank" rel="noopener" title="RSS" href="/atom.xml"><i class="fas fa-rss"></i></a></div></div></div><div class="card widget" id="toc" data-type="toc"><div class="card-content"><div class="menu"><h3 class="menu-label">目录</h3><ul class="menu-list"><li><a class="level is-mobile" href="#社区目标"><span class="level-left"><span class="level-item">1</span><span class="level-item">社区目标</span></span></a></li><li><a class="level is-mobile" href="#特性概述"><span class="level-left"><span class="level-item">2</span><span class="level-item">特性概述</span></span></a></li><li><a class="level is-mobile" href="#功能盘点"><span class="level-left"><span class="level-item">3</span><span class="level-item">功能盘点</span></span></a><ul class="menu-list"><li><a class="level is-mobile" href="#Cinder"><span class="level-left"><span class="level-item">3.1</span><span class="level-item">Cinder</span></span></a></li><li><a class="level is-mobile" href="#Cyborg"><span class="level-left"><span class="level-item">3.2</span><span class="level-item">Cyborg</span></span></a></li><li><a class="level is-mobile" href="#Glance"><span class="level-left"><span class="level-item">3.3</span><span class="level-item">Glance</span></span></a></li><li><a class="level is-mobile" href="#Ironic"><span class="level-left"><span class="level-item">3.4</span><span class="level-item">Ironic</span></span></a></li><li><a class="level is-mobile" href="#Keystone"><span class="level-left"><span class="level-item">3.5</span><span class="level-item">Keystone</span></span></a></li><li><a class="level is-mobile" href="#Kolla"><span class="level-left"><span class="level-item">3.6</span><span class="level-item">Kolla</span></span></a></li><li><a class="level is-mobile" href="#Neutron"><span class="level-left"><span class="level-item">3.7</span><span class="level-item">Neutron</span></span></a></li><li><a class="level is-mobile" href="#Nova"><span class="level-left"><span class="level-item">3.8</span><span class="level-item">Nova</span></span></a></li><li><a class="level is-mobile" href="#Octavia"><span class="level-left"><span class="level-item">3.9</span><span class="level-item">Octavia</span></span></a></li></ul></li><li><a class="level is-mobile" href="#参考资料"><span class="level-left"><span class="level-item">4</span><span class="level-item">参考资料</span></span></a></li><li><a class="level is-mobile" href="#英文版"><span class="level-left"><span class="level-item">5</span><span class="level-item">英文版</span></span></a></li></ul></div></div><style>#toc .menu-list > li > a.is-active + .menu-list { display: block; }#toc .menu-list > li > a + .menu-list { display: none; }</style><script src="/js/toc.js" defer></script></div><div class="column-right-shadow is-hidden-widescreen"></div></div><div class="column column-right is-4-tablet is-4-desktop is-3-widescreen is-hidden-touch is-hidden-desktop-only order-3"><!--!--><div class="card widget" data-type="recent-posts"><div class="card-content"><h3 class="menu-label">最新文章</h3><article class="media"><div class="media-content"><p class="date"><time dateTime="2022-09-26T00:00:00.000Z">2022-09-26</time></p><p class="title"><a href="/2022/09/26/elasticsearch/elasticsearch_large_text_field.html">Elasticsearch大文本字段(large text field)优化方案</a></p></div></article><article class="media"><div class="media-content"><p class="date"><time dateTime="2022-08-07T10:52:55.000Z">2022-08-07</time></p><p class="title"><a href="/2022/08/07/umi/umi.html">UMI框架解析</a></p></div></article><article class="media"><div class="media-content"><p class="date"><time dateTime="2021-11-19T22:12:55.000Z">2021-11-19</time></p><p class="title"><a href="/2021/11/19/openstack/openstack_uvw_highlight.html">OpenStack Ussuri-Victoria-Wallaby版本新功能介绍</a></p></div></article><article class="media"><div class="media-content"><p class="date"><time dateTime="2021-11-19T22:03:55.000Z">2021-11-19</time></p><p class="title"><a href="/2021/11/19/openstack/openstack_rst_highlight.html">OpenStack Stein-Train版本新功能介绍</a></p></div></article><article class="media"><div class="media-content"><p class="date"><time dateTime="2021-10-16T00:00:00.000Z">2021-10-16</time></p><p class="title"><a href="/2021/10/16/kubernetes/kube-kubelet-csi.html">Kubernetes Kubelet CSI 机制解析</a></p></div></article></div></div><div class="card widget" data-type="archives"><div class="card-content"><div class="menu"><h3 class="menu-label">归档</h3><ul class="menu-list"><li><a class="level is-mobile" href="/archives/2022/"><span class="level-start"><span class="level-item">2022</span></span><span class="level-end"><span class="level-item tag">2</span></span></a></li><li><a class="level is-mobile" href="/archives/2021/"><span class="level-start"><span class="level-item">2021</span></span><span class="level-end"><span class="level-item tag">6</span></span></a></li><li><a class="level is-mobile" href="/archives/2020/"><span class="level-start"><span class="level-item">2020</span></span><span class="level-end"><span class="level-item tag">14</span></span></a></li><li><a class="level is-mobile" href="/archives/2019/"><span class="level-start"><span class="level-item">2019</span></span><span class="level-end"><span class="level-item tag">5</span></span></a></li><li><a class="level is-mobile" href="/archives/2018/"><span class="level-start"><span class="level-item">2018</span></span><span class="level-end"><span class="level-item tag">2</span></span></a></li><li><a class="level is-mobile" href="/archives/2017/"><span class="level-start"><span class="level-item">2017</span></span><span class="level-end"><span class="level-item tag">12</span></span></a></li></ul></div></div></div><div class="card widget" data-type="tags"><div class="card-content"><div class="menu"><h3 class="menu-label">标签</h3><div class="field is-grouped is-grouped-multiline"><div class="control"><a class="tags has-addons" href="/tags/ceph/"><span class="tag">ceph</span><span class="tag">2</span></a></div><div class="control"><a class="tags has-addons" href="/tags/elasticsearch/"><span class="tag">elasticsearch</span><span class="tag">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/kubernetes/"><span class="tag">kubernetes</span><span class="tag">16</span></a></div><div class="control"><a class="tags has-addons" href="/tags/openstack/"><span class="tag">openstack</span><span class="tag">19</span></a></div><div class="control"><a class="tags has-addons" href="/tags/operations/"><span class="tag">operations</span><span class="tag">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/python/"><span class="tag">python</span><span class="tag">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/umi/"><span class="tag">umi</span><span class="tag">1</span></a></div></div></div></div></div></div></div></div></section><footer class="footer"><div class="container"><div class="level"><div class="level-start"><a class="footer-logo is-block mb-2" href="/"><img src="/assets/logo.jpg" alt="开心鬼" height="28"></a><p class="is-size-7"><span>&copy; 2023 hackerain</span>  Powered by <a href="https://hexo.io/" target="_blank" rel="noopener">Hexo</a> &amp; <a href="https://github.com/ppoffice/hexo-theme-icarus" target="_blank" rel="noopener">Icarus</a></p><p class="is-size-7">© 2023</p></div><div class="level-end"><div class="field has-addons"><p class="control"><a class="button is-transparent is-large" target="_blank" rel="noopener" title="Download on GitHub" href="https://github.com/hackerain"><i class="fab fa-github"></i></a></p></div></div></div></div></footer><script src="https://cdn.jsdelivr.net/npm/jquery@3.3.1/dist/jquery.min.js"></script><script src="https://cdn.jsdelivr.net/npm/moment@2.22.2/min/moment-with-locales.min.js"></script><script src="https://cdn.jsdelivr.net/npm/clipboard@2.0.4/dist/clipboard.min.js" defer></script><script>moment.locale("zh-cn");</script><script>var IcarusThemeSettings = {
+            article: {
+                highlight: {
+                    clipboard: true,
+                    fold: 'unfolded'
+                }
+            }
+        };</script><script src="/js/column.js"></script><script src="/js/animation.js"></script><a id="back-to-top" title="回到顶端" href="javascript:;"><i class="fas fa-chevron-up"></i></a><script src="/js/back_to_top.js" defer></script><!--!--><!--!--><!--!--><script src="https://cdn.jsdelivr.net/npm/cookieconsent@3.1.1/build/cookieconsent.min.js" defer></script><script>window.addEventListener("load", () => {
+      window.cookieconsent.initialise({
+        type: "info",
+        theme: "edgeless",
+        static: false,
+        position: "bottom-left",
+        content: {
+          message: "此网站使用Cookie来改善您的体验。",
+          dismiss: "知道了！",
+          allow: "允许使用Cookie",
+          deny: "拒绝",
+          link: "了解更多",
+          policy: "Cookie政策",
+          href: "https://www.cookiesandyou.com/",
+        },
+        palette: {
+          popup: {
+            background: "#edeff5",
+            text: "#838391"
+          },
+          button: {
+            background: "#4b81e8"
+          },
+        },
+      });
+    });</script><script src="https://cdn.jsdelivr.net/npm/lightgallery@1.10.0/dist/js/lightgallery.min.js" defer></script><script src="https://cdn.jsdelivr.net/npm/justifiedGallery@3.8.1/dist/js/jquery.justifiedGallery.min.js" defer></script><script>window.addEventListener("load", () => {
+            if (typeof $.fn.lightGallery === 'function') {
+                $('.article').lightGallery({ selector: '.gallery-item' });
+            }
+            if (typeof $.fn.justifiedGallery === 'function') {
+                if ($('.justified-gallery > p > .gallery-item').length) {
+                    $('.justified-gallery > p > .gallery-item').unwrap();
+                }
+                $('.justified-gallery').justifiedGallery();
+            }
+        });</script><!--!--><!--!--><!--!--><!--!--><!--!--><script src="/js/main.js" defer></script><div class="searchbox"><div class="searchbox-container"><div class="searchbox-header"><div class="searchbox-input-container"><input class="searchbox-input" type="text" placeholder="想要查找什么..."></div><a class="searchbox-close" href="javascript:;">×</a></div><div class="searchbox-body"></div></div></div><script src="/js/insight.js" defer></script><script>document.addEventListener('DOMContentLoaded', function () {
+            loadInsight({"contentUrl":"/content.json"}, {"hint":"想要查找什么...","untitled":"(无标题)","posts":"文章","pages":"页面","categories":"分类","tags":"标签"});
+        });</script></body></html>
