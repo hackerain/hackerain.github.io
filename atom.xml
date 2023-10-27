@@ -323,7 +323,7 @@
     <link href="https://hackerain.me/2020/10/05/kubernetes/kube-apiserver-genericapiserver.html"/>
     <id>https://hackerain.me/2020/10/05/kubernetes/kube-apiserver-genericapiserver.html</id>
     <published>2020-10-05T00:00:00.000Z</published>
-    <updated>2023-10-26T16:17:25.297Z</updated>
+    <updated>2023-10-27T10:51:33.689Z</updated>
     
     
     <summary type="html">&lt;p&gt;在&lt;a href=&quot;https://hackerain.github.io/2020/08/09/kubernetes/kube-apiserver-overview.html&quot;&gt;Kubernetes APIServer 机制概述&lt;/a&gt;中我们介绍到了APIServer的本质其实是一个实现了RESTful API的WebServer，它使用golang的&lt;a href=&quot;https://golang.org/pkg/net/http/&quot;&gt;net/http&lt;/a&gt;的Server构建，并且Handler是其中非常重要的概念，此外，又简单介绍了APIServer的扩展机制，即Aggregator, APIExtensions以及KubeAPIServer这三者之间通过Delegation的方式实现了扩展。&lt;/p&gt;</summary>
