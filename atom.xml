@@ -6,7 +6,7 @@
   <link href="https://hackerain.me/atom.xml" rel="self"/>
   
   <link href="https://hackerain.me/"/>
-  <updated>2023-03-11T15:45:44.734Z</updated>
+  <updated>2023-10-28T03:37:31.879Z</updated>
   <id>https://hackerain.me/</id>
   
   <author>
@@ -15,6 +15,21 @@
   </author>
   
   <generator uri="https://hexo.io/">Hexo</generator>
+  
+  <entry>
+    <title>Kubernetes Scheme 解析</title>
+    <link href="https://hackerain.me/2023/10/28/kubernetes/kube-scheme.html"/>
+    <id>https://hackerain.me/2023/10/28/kubernetes/kube-scheme.html</id>
+    <published>2023-10-28T00:00:00.000Z</published>
+    <updated>2023-10-28T03:37:31.879Z</updated>
+    
+    
+    
+    
+    
+    <category term="kubernetes" scheme="https://hackerain.me/tags/kubernetes/"/>
+    
+  </entry>
   
   <entry>
     <title>Elasticsearch大文本字段(large text field)优化方案</title>
@@ -289,7 +304,7 @@
     <link href="https://hackerain.me/2020/10/08/kubernetes/kube-apiserver-extensions.html"/>
     <id>https://hackerain.me/2020/10/08/kubernetes/kube-apiserver-extensions.html</id>
     <published>2020-10-08T00:00:00.000Z</published>
-    <updated>2023-10-28T02:50:16.704Z</updated>
+    <updated>2023-10-28T03:37:31.879Z</updated>
     
     
     <summary type="html">&lt;p&gt;终于来到了这一篇，APIServer的扩展机制，前面介绍的那几篇，可以说都是在给这篇铺平道路，先来回顾下：&lt;/p&gt;</summary>
@@ -344,23 +359,6 @@
     
     
     <summary type="html">&lt;p&gt;在&lt;a href=&quot;https://hackerain.github.io/2020/09/28/golang/go-restful-overview.html&quot;&gt;go-restful&lt;/a&gt;的介绍中，有介绍过Kubernetes中核心的API是使用go-restful来构建的，我们知道除了核心API，Kubernetes APIServer还提供了两种扩展机制，分别为Aggregation和APIExtensions，这两者中的API对象，则是使用NonGoRestfulMux来构建的，之所以不继续使用go-restful，原因还没有细究，可能是因为一些兼容性问题，后续有可能抛弃go-restful，完全切到NonGoRestfulMux上来，但是看改造工作量还是比较大的。下面我们来看看这个NonGoRestfulMux究竟是个什么东西，其代码位于：&lt;code&gt;apiserver/pkg/server/mux/pathrecorder.go&lt;/code&gt;&lt;/p&gt;</summary>
-    
-    
-    
-    
-    <category term="kubernetes" scheme="https://hackerain.me/tags/kubernetes/"/>
-    
-  </entry>
-  
-  <entry>
-    <title>go-restful简析</title>
-    <link href="https://hackerain.me/2020/09/28/golang/go-restful-overview.html"/>
-    <id>https://hackerain.me/2020/09/28/golang/go-restful-overview.html</id>
-    <published>2020-09-28T00:00:00.000Z</published>
-    <updated>2023-03-11T15:45:44.735Z</updated>
-    
-    
-    <summary type="html">&lt;p&gt;&lt;a href=&quot;https://github.com/emicklei/go-restful&quot;&gt;go-restful&lt;/a&gt;是一个golang语言实现的RESTful库，因为Kubernetes APIServer使用它实现RESTful API，这里就简单分析下。看它的文档介绍，功能还是挺强大的，主要体现在它的路由策略上，支持静态，谷歌式的自定义方法，正则表达式，以及URL内参数等，此外还支持json/xml等格式化，还有filter过滤器等，虽然有这么多功能，但是Kubernetes使用的比较简单，只用到了它最基础的功能，即路由功能，这里就重点分析下这个功能。&lt;/p&gt;</summary>
     
     
     
