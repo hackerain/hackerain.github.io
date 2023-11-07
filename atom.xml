@@ -6,7 +6,7 @@
   <link href="https://hackerain.me/atom.xml" rel="self"/>
   
   <link href="https://hackerain.me/"/>
-  <updated>2023-11-07T15:46:04.396Z</updated>
+  <updated>2023-11-07T15:54:09.275Z</updated>
   <id>https://hackerain.me/</id>
   
   <author>
@@ -21,7 +21,7 @@
     <link href="https://hackerain.me/2023/10/28/kubernetes/kube-scheme.html"/>
     <id>https://hackerain.me/2023/10/28/kubernetes/kube-scheme.html</id>
     <published>2023-10-28T00:00:00.000Z</published>
-    <updated>2023-11-07T15:46:04.396Z</updated>
+    <updated>2023-11-07T15:54:09.275Z</updated>
     
     
     <summary type="html">&lt;h2 id=&quot;前言&quot;&gt;&lt;a href=&quot;#前言&quot; class=&quot;headerlink&quot; title=&quot;前言&quot;&gt;&lt;/a&gt;前言&lt;/h2&gt;&lt;p&gt;三年前在分析Kubernete APIServer时，就经常遇到两个东西，一个是Scheme，一个是Codec，当时对它们并不是很理解，也没有去细究，但是后来越来越多的能够遇见它们，尤其是在做Kubernetes API相关的开发时，Scheme的出镜率很高，于是查了下资料才知道，原来他们跟Kubernetes的API多版本和序列化有关，而API多版本又属于Kubernetes API的重要特性，它跟一般应用的多版本API还不太一样，有它自己的特色，因此搞懂它的相关概念和实现原理是相当有必要的。从前面介绍apiserver的系列文章上也可以看到，因为Kubernetes要处理很多种资源，可以说是包罗万象，所以它做了很多的抽象，而API多版本则是在这些抽象之上再度抽象的艺术，因此还是比较难以理解的，但是这些设计都是随着时间的推移逐渐演进出来的，有它的合理性，甚至当理解了它的机制之后，会发现它的设计之美，仿佛是一件艺术品。毕加索说，艺术是揭示真理的谎言，就让我们拨开API多版本的层层迷雾，去探寻下它的本质。&lt;/p&gt;</summary>
