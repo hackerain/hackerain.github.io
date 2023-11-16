@@ -273,7 +273,7 @@
     <link href="https://hackerain.me/2020/12/11/kubernetes/kube-clientgo-informer.html"/>
     <id>https://hackerain.me/2020/12/11/kubernetes/kube-clientgo-informer.html</id>
     <published>2020-12-11T00:00:00.000Z</published>
-    <updated>2023-03-11T15:45:44.737Z</updated>
+    <updated>2023-11-16T13:50:36.219Z</updated>
     
     
     <summary type="html">&lt;p&gt;Kubernetes的控制器模式是其非常重要的一个设计模式，整个Kubernetes定义的资源对象以及其状态都保存在etcd数据库中，通过apiserver对其进行增删查改，而各种各样的控制器需要从apiserver及时获取这些对象以及其当前定义的状态，然后将其应用到实际中，即将这些对象的实际状态调整为期望状态，让他们保持匹配。因此各种控制器需要和apiserver进行频繁交互，需要能够及时获取对象状态的变化，而如果简单的通过暴力轮询的话，会给apiserver造成很大的压力，且效率很低，因此，Kubernetes设计了Informer这个机制，用来作为控制器跟apiserver交互的桥梁，它主要有两方面的作用：&lt;/p&gt;</summary>
