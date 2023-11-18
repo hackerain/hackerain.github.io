@@ -6,7 +6,7 @@
   <link href="https://hackerain.me/atom.xml" rel="self"/>
   
   <link href="https://hackerain.me/"/>
-  <updated>2023-11-12T11:00:19.131Z</updated>
+  <updated>2023-11-18T15:25:04.788Z</updated>
   <id>https://hackerain.me/</id>
   
   <author>
@@ -15,6 +15,23 @@
   </author>
   
   <generator uri="https://hexo.io/">Hexo</generator>
+  
+  <entry>
+    <title>Kubernetes controller-runtime 介绍</title>
+    <link href="https://hackerain.me/2023/11/18/kubernetes/kube-controller-runtime.html"/>
+    <id>https://hackerain.me/2023/11/18/kubernetes/kube-controller-runtime.html</id>
+    <published>2023-11-18T00:00:00.000Z</published>
+    <updated>2023-11-18T15:25:04.788Z</updated>
+    
+    
+    <summary type="html">&lt;p&gt;我们在做CRD开发时，除了要写CRD定义之外，最重要的是实现CRD对应的Controller，这样CRD才能真正有用，而不论什么CRD，它的Controller的逻辑框架是大致一样的，主要就是监听CRD资源的变化事件，然后触发Reconcile逻辑去执行对应的动作，确保实际状态跟CRD的定义状态保持一致，此外，还有一些其他通用功能，比如监控、选主、Wehbook等，这种开发范式现在称之为&lt;code&gt;Operator&lt;/code&gt;，在万物皆可CRD的云原生时代，这种通用需求早已被剥离出来，成为单独的第三方库，即&lt;a href=&quot;https://github.com/kubernetes-sigs/controller-runtime&quot;&gt;controller-runtime&lt;/a&gt;，而&lt;a href=&quot;https://github.com/operator-framework/operator-sdk&quot;&gt;operator-sdk&lt;/a&gt;也封装的是 &lt;code&gt;controller-runtime&lt;/code&gt;，方便进行operator的开发，可见其重要性，本篇文章就对 &lt;code&gt;controller-runtime&lt;/code&gt; 的概念、原理以及核心逻辑进行下介绍。&lt;/p&gt;</summary>
+    
+    
+    
+    
+    <category term="kubernetes" scheme="https://hackerain.me/tags/kubernetes/"/>
+    
+  </entry>
   
   <entry>
     <title>Kubernetes API Codec 解析</title>
@@ -345,23 +362,6 @@
     
     
     <summary type="html">&lt;p&gt;终于来到了这一篇，APIServer的扩展机制，前面介绍的那几篇，可以说都是在给这篇铺平道路，先来回顾下：&lt;/p&gt;</summary>
-    
-    
-    
-    
-    <category term="kubernetes" scheme="https://hackerain.me/tags/kubernetes/"/>
-    
-  </entry>
-  
-  <entry>
-    <title>Kubernetes APIServer API Resource Installation</title>
-    <link href="https://hackerain.me/2020/10/06/kubernetes/kube-apiserver-api-resource-installation.html"/>
-    <id>https://hackerain.me/2020/10/06/kubernetes/kube-apiserver-api-resource-installation.html</id>
-    <published>2020-10-06T00:00:00.000Z</published>
-    <updated>2023-10-28T14:23:58.630Z</updated>
-    
-    
-    <summary type="html">&lt;p&gt;在&lt;a href=&quot;https://hackerain.github.io/2020/09/19/kubernetes/kube-apiserver-storage-overview.html&quot;&gt;Kubernetes APIServer Storage 框架解析&lt;/a&gt;中，我们介绍了APIServer相关的存储框架，每个API资源，都有对应的&lt;code&gt;REST store&lt;/code&gt;以及&lt;code&gt;etcd store&lt;/code&gt;。在&lt;a href=&quot;https://hackerain.github.io/2020/10/05/kubernetes/kube-apiserver-genericapiserver.html&quot;&gt;Kubernetes APIServer GenericAPIServer&lt;/a&gt;中介绍了GenericAPIServer的Handler是如何构建，API对象是如何以APIGroupInfo的形式注册进Handler中的。在&lt;a href=&quot;https://hackerain.github.io/2020/08/09/kubernetes/kube-apiserver-overview.html&quot;&gt;Kubernetes APIServer 机制概述&lt;/a&gt;中简单介绍了APIServer的扩展机制，即Aggregator, APIExtensions以及KubeAPIServer这三者之间通过Delegation的方式实现了扩展。本篇文章就重点介绍下这三个”扩展对象”中的API对象资源是如何组织成APIGroupInfo的，然后怎么调用GenericAPIServer中暴露出来的安装方法进行安装的，最后盘点下当前版本的Kubernetes中，都有哪些API对象资源。&lt;/p&gt;</summary>
     
     
     
