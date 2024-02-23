@@ -55,7 +55,7 @@
     <link href="https://hackerain.me/2023/11/11/kubernetes/kube-versioning-scheme.html"/>
     <id>https://hackerain.me/2023/11/11/kubernetes/kube-versioning-scheme.html</id>
     <published>2023-11-11T00:00:00.000Z</published>
-    <updated>2023-11-12T11:00:19.132Z</updated>
+    <updated>2024-02-23T05:17:27.350Z</updated>
     
     
     <summary type="html">&lt;h2 id=&quot;概述&quot;&gt;&lt;a href=&quot;#概述&quot; class=&quot;headerlink&quot; title=&quot;概述&quot;&gt;&lt;/a&gt;概述&lt;/h2&gt;&lt;p&gt;在 &lt;a href=&quot;https://hackerain.github.io/2023/10/28/kubernetes/kube-versioning.html&quot;&gt;Kubernetes API 多版本和序列化&lt;/a&gt; 这篇文章中，介绍了API多版本的功能和实现原理，其中Scheme就是其实现原理的一项重要机制，在平时的开发中也经常会遇到，本篇文章就对其进行下分析。&lt;/p&gt;
